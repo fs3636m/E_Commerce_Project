@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import ProductFilter from "@/components/shopping-view/filter";
+import ProductFilter from "@/components/shopping-view/Filter";
 import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
 import {
