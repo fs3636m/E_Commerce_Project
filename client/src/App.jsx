@@ -6,9 +6,9 @@ import CheckAuth from "./components/common/CheckAuth";
 import { checkAuth } from "./store/auth-slice";
 
 // Layouts
-const AuthLayout = lazy(() => import("./components/auth-component/layout"));
-const AdminLayout = lazy(() => import("./components/admin-view/layout"));
-const ShoppingLayout = lazy(() => import("./components/shopping-view/layout"));
+const AuthLayout = lazy(() => import("./components/auth-component/Layout"));
+const AdminLayout = lazy(() => import("./components/admin-view/Layout"));
+const ShoppingLayout = lazy(() => import("./components/shopping-view/Layout"));
 
 // Auth Pages
 const AuthLogin = lazy(() => import("./pages/auth-page/Login"));
