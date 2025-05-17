@@ -30,8 +30,8 @@ const PaymentSuccessPage = lazy(() => import("./pages/shopping-view/payment_succ
 const SearchProducts = lazy(() => import("./pages/shopping-view/search"));
 
 // Misc
-const NotFound = lazy(() => import("./pages/not-found"));
-const UnauthPage = lazy(() => import("./pages/unauth-page"));
+const NotFound = lazy(() => import("./pages/not-found/Index"));
+const UnauthPage = lazy(() => import("./pages/unauth-page/Index"));
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
