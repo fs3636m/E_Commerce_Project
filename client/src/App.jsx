@@ -18,13 +18,13 @@ const AuthRegister = lazy(() => import("./pages/auth-page/Register"));
 const AdminDashboard = lazy(() => import("./pages/admin-view/Dashboard"));
 const AdminProducts = lazy(() => import("./pages/admin-view/Product"));
 const AdminOrders = lazy(() => import("./pages/admin-view/Orders"));
-const AdminFeatures = lazy(() => import("./pages/admin-view/features"));
+const AdminFeatures = lazy(() => import("./pages/admin-view/Features"));
 
 // Shopping Pages
-const ShoppingHome = lazy(() => import("./pages/shopping-view/home"));
-const ShoppingListing = lazy(() => import("./pages/shopping-view/listing"));
-const ShoppingCheckout = lazy(() => import("./pages/shopping-view/checkout"));
-const ShoppingAccount = lazy(() => import("./pages/shopping-view/account"));
+const ShoppingHome = lazy(() => import("./pages/shopping-view/Home"));
+const ShoppingListing = lazy(() => import("./pages/shopping-view/Listing"));
+const ShoppingCheckout = lazy(() => import("./pages/shopping-view/Checkout"));
+const ShoppingAccount = lazy(() => import("./pages/shopping-view/Account"));
 const PaypalReturnPage = lazy(() => import("./pages/shopping-view/paypal_return"));
 const PaymentSuccessPage = lazy(() => import("./pages/shopping-view/payment_success"));
 const SearchProducts = lazy(() => import("./pages/shopping-view/search"));
