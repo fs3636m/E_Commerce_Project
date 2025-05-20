@@ -6,13 +6,15 @@ import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { Toaster } from "@/components/ui/sonner";
 
-createRoot(document.getElementById('root')).render(
-  <BrowserRouter> 
-  <Provider store={store}>
-    <App />
-    <Toaster />
-  </Provider>
-  </BrowserRouter>
-   
-  
+const root = createRoot(document.getElementById('root'));
+
+root.render(
+  <React.StrictMode>
+    <Provider store={store}>
+      <BrowserRouter>
+        <App />
+        <Toaster richColors position="top-right" />
+      </BrowserRouter>
+    </Provider>
+  </React.StrictMode>
 );
