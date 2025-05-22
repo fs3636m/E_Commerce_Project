@@ -4,6 +4,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const path = require("path");
 const authRouter = require("./routes/auth/auth_route");
 const adminProductRouter = require("./routes/admin/products_routes");
 const adminOrderRouter = require("./routes/admin/order_routes");
@@ -11,7 +12,7 @@ const adminOrderRouter = require("./routes/admin/order_routes");
 const shopProductsRouter = require("./routes/shop/products_routes");
 const shopCartRouter = require("./routes/shop/cart_routes");
 const shopAddressRouter = require("./routes/shop/address_routes");
-const shopOrderRouter = require("./routes/shop/0rder_routes");
+const shopOrderRouter = require("./routes/shop/order_routes");
 const shopSearchRouter = require("./routes/shop/search_routes");
 const shopReviewRouter = require("./routes/shop/review_routes");
 
@@ -21,7 +22,7 @@ const commonFeatureRouter = require("./routes/common/feature_routes");
 mongoose
   .connect(process.env.MONGO_URL)
   .then(() => console.log("MongoDB connected"))
-  .catch((error) => console.log(error));
+  .catch((error) => console.log("❌ MongoDB connection error:", error));
 
 const app = express();
 const PORT = process.env.PORT || 5100;
@@ -55,4 +56,5 @@ app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
 
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+// ✅ Start Server
+app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}`));
