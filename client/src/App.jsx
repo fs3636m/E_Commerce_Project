@@ -25,8 +25,12 @@ const ShoppingHome = lazy(() => import("./pages/shopping-view/Home"));
 const ShoppingListing = lazy(() => import("./pages/shopping-view/Listing"));
 const ShoppingCheckout = lazy(() => import("./pages/shopping-view/Checkout"));
 const ShoppingAccount = lazy(() => import("./pages/shopping-view/Account"));
-const PaypalReturnPage = lazy(() => import("./pages/shopping-view/paypal_return"));
-const PaymentSuccessPage = lazy(() => import("./pages/shopping-view/payment_success"));
+const PaypalReturnPage = lazy(() =>
+  import("./pages/shopping-view/paypal_return")
+);
+const PaymentSuccessPage = lazy(() =>
+  import("./pages/shopping-view/payment_success")
+);
 const SearchProducts = lazy(() => import("./pages/shopping-view/search"));
 
 // Misc
@@ -51,8 +55,19 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<CheckAuth isAuthenticated={isAuthenticated} user={user} />}
+            element={
+              isAuthenticated ? (
+                user?.role === "admin" ? (
+                  <Navigate to="/admin/dashboard" />
+                ) : (
+                  <Navigate to="/shop/home" />
+                )
+              ) : (
+                <Navigate to="/auth/login" />
+              )
+            }
           />
+
           <Route
             path="/auth"
             element={
