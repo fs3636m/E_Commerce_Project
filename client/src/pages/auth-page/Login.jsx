@@ -1,33 +1,42 @@
-import CommonForm from "@/components/common/Form";
+import { useState } from "react";
 import { useDispatch } from "react-redux";
+import { useNavigate, Link } from "react-router-dom";
+import { toast } from "sonner";
+import CommonForm from "@/components/common/Form";
 import { LoginFormControls } from "@/config/Index";
 import { loginUser } from "@/store/auth-slice";
-import { useState } from "react";
-import { toast } from "sonner";
-import { useNavigate, Link } from "react-router-dom"; 
 
-const initialState = {
-  email: "",
-  password: "",
-};
-
-function AuthLogin() {
-  const [formData, setFormData] = useState(initialState);
+const AuthLogin = () => {
+  const [formData, setFormData] = useState({
+    email: "",
+    password: ""
+  });
+  const [isLoading, setIsLoading] = useState(false);
   const dispatch = useDispatch();
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
-  function onSubmit(event) {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
 
-    dispatch(loginUser(formData)).then((data) => {
-      if (data?.payload?.success) {
-        toast(data?.payload?.message);
-        navigate("/"); 
+    try {
+      const actionResult = await dispatch(loginUser(formData));
+      const { success, message, user } = actionResult.payload || {};
+
+      if (success) {
+        toast.success(message);
+        // Redirect based on user role
+        navigate(user?.role === "admin" ? "/admin/dashboard" : "/shop/home");
       } else {
-        toast(data?.payload?.message, { variant: "destructive" });
+        toast.error(message || "Login failed");
       }
-    });
-  }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+      console.error("Login error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-md space-y-6">
@@ -36,9 +45,9 @@ function AuthLogin() {
           Sign in to your Account
         </h1>
         <p className="mt-2">
-          Don't have an account
+          Don't have an account?{" "}
           <Link
-            className="font-medium ml-2 text-primary hover:underline"
+            className="font-medium text-primary hover:underline"
             to="/auth/register"
           >
             Register
@@ -47,13 +56,14 @@ function AuthLogin() {
       </div>
       <CommonForm
         formControls={LoginFormControls}
-        buttonText={"Sign In"}
+        buttonText={isLoading ? "Signing In..." : "Sign In"}
         formData={formData}
         setFormData={setFormData}
-        onSubmit={onSubmit}
+        onSubmit={handleSubmit}
+        disabled={isLoading}
       />
     </div>
   );
-}
+};
 
 export default AuthLogin;
