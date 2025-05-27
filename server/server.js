@@ -35,7 +35,6 @@ mongoose.connect(process.env.MONGO_URL, {
 const allowedOrigins = [
   "http://localhost:5173", // Your local development
   "https://e-commerce-project-1-w8qc.onrender.com", // Your production frontend
-  "https://e-commerce-project-e8qc.onrender.com" // Your backend URL
 ];
 
 app.use(cors({

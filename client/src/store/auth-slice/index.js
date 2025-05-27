@@ -39,16 +39,23 @@ export const loginUser = createAsyncThunk(
         `${import.meta.env.VITE_API_URL}/api/auth/login`,
         formData,
         {
-          withCredentials: true, // Essential for cookies
+          withCredentials: true,
           headers: {
             'Content-Type': 'application/json'
           }
         }
       );
+      
+      // Verify cookie was set
+      if (!document.cookie.includes('token')) {
+        throw new Error('Authentication cookie not set');
+      }
+      
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || { 
-        message: 'Login failed' 
+      return rejectWithValue({
+        message: error.response?.data?.message || 'Login failed',
+        status: error.response?.status
       });
     }
   }
