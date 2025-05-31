@@ -47,8 +47,8 @@ app.use(cors({
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "DELETE", "PUT"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+  methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
+  allowedHeaders: ["content-type", "authorization", "cache-control"],
 }));
 
 app.set('trust proxy', 1); // Required for secure cookies on Render
@@ -67,8 +67,6 @@ app.use("/api/shop/order", shopOrderRouter);
 app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
-
-
 
 
 // Server initialization with safe route debugging
