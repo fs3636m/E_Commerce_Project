@@ -18,40 +18,30 @@ const shopSearchRouter = require("./routes/shop/search_routes");
 const shopReviewRouter = require("./routes/shop/review_routes");
 const commonFeatureRouter = require("./routes/common/feature_routes");
 
+// MongoDB Connection
+mongoose
+  .connect(process.env.MONGO_URL)
+  .then(() => console.log("✅ MongoDB connected successfully"))
+   .catch((error) => console.log("❌ MongoDB connection error:", error));
+
 const app = express();
 const PORT = process.env.PORT || 5100;
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URL, {
-  serverSelectionTimeoutMS: 5000 // Timeout after 5s
-})
-.then(() => console.log("✅ MongoDB connected successfully"))
-.catch(err => {
-  console.error("❌ MongoDB connection error:", err.message);
-  process.exit(1);
-});
 
-// CORS Configuration
-const allowedOrigins = [
-  "http://localhost:5173", // Your local development
-  "https://e-commerce-project-1-w8qc.onrender.com", // Your production frontend
-];
-
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn(`⚠ CORS blocked: ${origin}`);
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "DELETE", "PUT", "OPTIONS"],
-  allowedHeaders: ["content-type", "authorization", "cache-control"],
-}));
-
-app.set('trust proxy', 1); // Required for secure cookies on Render
+app.use(
+  cors({
+    origin: process.env.CLIENT_BASE_URL,
+    methods: ["GET", "POST", "DELETE", "PUT"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Cache-Control",
+      "Expires",
+      "Pragma",
+    ],
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -68,28 +58,6 @@ app.use("/api/shop/search", shopSearchRouter);
 app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
 
-
-// Server initialization with safe route debugging
-const server = app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 Allowed origins:`, allowedOrigins);
-});
-
-// MongoDB event listeners
-mongoose.connection.on('connected', () => {
-  console.log('📚 MongoDB connection established');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error('❌ MongoDB connection error:', err);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.warn('⚠ MongoDB disconnected');
-});
-
-// Graceful shutdown
-process.on('SIGINT', async () => {
-  await mongoose.connection.close();
-  process.exit(0);
 });
