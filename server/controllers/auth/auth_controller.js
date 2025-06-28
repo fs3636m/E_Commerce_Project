@@ -64,13 +64,26 @@ const loginUser = async (req, res) => {
         email: checkUser.email,
         username: checkUser.username,
       },
-      "CLIENT_SECRET_KEY",
+      process.env.CLIENT_SECRET_KEY,
       { expiresIn: "60m" }
     );
 
-    res.cookie("token", token, { httpOnly: true, secure: true }).json({
+    // res.cookie("token", token, { httpOnly: true, secure: true }).json({
+    //   success: true,
+    //   message: "Logged in successfully",
+    //   token,
+    //   user: {
+    //     id: checkUser._id,
+    //     username: checkUser.username,
+    //     email: checkUser.email,
+    //     role: checkUser.role,
+    //   },
+    // });
+
+    res.status(200).json({
       success: true,
       message: "Logged in successfully",
+      token,
       user: {
         id: checkUser._id,
         username: checkUser.username,
@@ -97,7 +110,9 @@ const logoutUser = (req, res) => {
 
 // ✅ Auth Middleware
 const authMiddleware = async (req, res, next) => {
-  const token = req.cookies.token;
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(" ")[1];
+ 
   if (!token)
     return res.status(401).json({
       success: false,
@@ -105,8 +120,9 @@ const authMiddleware = async (req, res, next) => {
     });
 
   try {
-    const decoded = jwt.verify(token, "CLIENT_SECRET_KEY");
+    const decoded = jwt.verify(token, process.env.CLIENT_SECRET_KEY);
     req.user = decoded;
+
     next();
   } catch (error) {
     res.status(401).json({

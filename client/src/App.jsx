@@ -38,7 +38,8 @@ function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(checkAuth());
+    const token = sessionStorage.getItem("token");
+    dispatch(checkAuth(token));
   }, [dispatch]);
 
   if (isLoading) {
