@@ -38,6 +38,17 @@ function AdminDashboard() {
     dispatch(getFeatureImages());
   }, [dispatch]);
 
+  const handleDelete = (reviewId) => {
+  dispatch(deleteBrandReviewByAdmin(reviewId))
+    .unwrap()
+    .then(() => {
+      toast.success("Review deleted");
+      dispatch(getBrandReviews(brandId));
+    })
+    .catch((err) => toast.error(err));
+};
+
+
   return (
     <div>
       <ProductImageUpload

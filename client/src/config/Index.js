@@ -1,6 +1,6 @@
 export const registerFormControls = [
   {
-    name: "username",          
+    name: "username",
     label: "User Name",
     type: "text",
     placeholder: "Enter your username",
@@ -21,7 +21,6 @@ export const registerFormControls = [
     componentType: "input",
   },
 ];
-
 
 export const LoginFormControls = [
   {
@@ -143,6 +142,10 @@ export const shoppingViewHeaderMenuItems = [
     label: "Search",
     path: "/shop/search",
   },
+  { id: "brands",
+     label: "Brands", 
+     path: "/brands"
+     }
 ];
 
 export const categoryOptionsMap = {
@@ -161,7 +164,6 @@ export const brandOptionsMap = {
   zara: "Zara",
   "h&m": "H&M",
 };
-
 
 export const filterOptions = {
   category: [

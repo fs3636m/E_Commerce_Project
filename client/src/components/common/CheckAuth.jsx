@@ -5,30 +5,28 @@ function CheckAuth({ isAuthenticated, user, isLoading, children }) {
 
   // Add loading state check to prevent flash of redirects
   if (isLoading) {
-    return <div className="flex justify-center items-center h-screen">
-      <p>Loading authentication status...</p>
-    </div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading authentication status...</p>
+      </div>
+    );
   }
 
   // Define route types
-  const isAuthRoute = location.pathname.startsWith('/auth');
-  const isAdminRoute = location.pathname.startsWith('/admin');
-  const isShopRoute = location.pathname.startsWith('/shop');
+  const isAuthRoute = location.pathname.startsWith("/auth");
+  const isAdminRoute = location.pathname.startsWith("/admin");
+  const isShopRoute = location.pathname.startsWith("/shop");
+  const isBrandRoute = location.pathname.startsWith("/brands");
 
   // 1. Redirect unauthenticated users from protected routes to login
   if (!isAuthenticated && !isAuthRoute) {
-    return <Navigate 
-      to="/auth/login" 
-      state={{ from: location }} 
-      replace 
-    />;
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
   // 2. Redirect authenticated users away from auth routes
   if (isAuthenticated && isAuthRoute) {
-    const redirectPath = user?.role === "admin" 
-      ? "/admin/dashboard" 
-      : "/shop/home";
+    const redirectPath =
+      user?.role === "admin" ? "/admin/dashboard" : "/shop/home";
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -41,6 +39,9 @@ function CheckAuth({ isAuthenticated, user, isLoading, children }) {
     // Admin trying to access shop routes (optional restriction)
     if (isShopRoute && user?.role === "admin") {
       return <Navigate to="/admin/dashboard" replace />;
+    }
+    if (isAdminRoute && user?.role === "brand") {
+      return <Navigate to="/brands/dashboard" replace />;
     }
   }
 

@@ -10,6 +10,11 @@ import shopAddressSlice from "./shop/address_slice";
 import shopSearchSlice from "./shop/search_slice";
 import shopReviewSlice from "./shop/review_slice";
 import commonFeatureSlice from "./common_slice";
+import brandProductSlice from "./brand/products_slice";
+import brandOrderReducer from "./brand/order_slice";
+import brandSummaryReducer from "./brand/summary_slice";
+import brandReducer from "./shop/brand_slice";
+
 
 const store = configureStore({
   reducer: {
@@ -17,6 +22,7 @@ const store = configureStore({
 
     adminOrder: adminOrderReducer,
     adminProducts: adminProductsSlice,
+    
 
     shopProducts: shopProductsSlice,
     shopCart: shopCartSlice,
@@ -24,8 +30,11 @@ const store = configureStore({
     shopOrder: shopOrderSlice,
     shopSearch: shopSearchSlice,  
     shopReview: shopReviewSlice,
-
-    commonFeature: commonFeatureSlice
+    commonFeature: commonFeatureSlice,
+    brandProducts: brandProductSlice,
+    brandOrder: brandOrderReducer,
+    brand: brandReducer,
+    brandSummary: brandSummaryReducer
   },
 });
 

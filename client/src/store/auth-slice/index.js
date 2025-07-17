@@ -40,7 +40,7 @@ export const loginUser = createAsyncThunk(
         `${import.meta.env.VITE_API_URL}/api/auth/login`,
         formData,
         {
-          withCredentials: true, // Essential for cookies
+          withCredentials: true,
           headers: {
             'Content-Type': 'application/json'
           }

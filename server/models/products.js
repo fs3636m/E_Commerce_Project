@@ -6,7 +6,16 @@ const ProductSchema = new mongoose.Schema(
     title: String,
     description: String,
     category: String,
+
+    // Admin still uses this
     brand: String,
+
+    // Brand users will use this
+    brandRef: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Brand",
+    },
+
     price: Number,
     salePrice: Number,
     totalStock: Number,

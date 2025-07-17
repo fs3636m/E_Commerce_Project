@@ -5,10 +5,11 @@ import Skeleton from "react-loading-skeleton";
 import CheckAuth from "./components/common/CheckAuth";
 import { checkAuth } from "./store/auth-slice";
 
-// Lazy-loaded components
+// Layouts
 const AuthLayout = lazy(() => import("./components/auth-component/Layout"));
 const AdminLayout = lazy(() => import("./components/admin-view/Layout"));
 const ShoppingLayout = lazy(() => import("./components/shopping-view/Layout"));
+const BrandLayout = lazy(() => import("./components/brand-view/BrandLayout"));
 
 // Auth Pages
 const AuthLogin = lazy(() => import("./pages/auth-page/Login"));
@@ -19,6 +20,7 @@ const AdminDashboard = lazy(() => import("./pages/admin-view/Dashboard"));
 const AdminProducts = lazy(() => import("./pages/admin-view/Product"));
 const AdminOrders = lazy(() => import("./pages/admin-view/Orders"));
 const AdminFeatures = lazy(() => import("./pages/admin-view/Features"));
+const AdminBrands = lazy(() => import("./pages/admin-view/AdminBrands"));
 
 // Shopping Pages
 const ShoppingHome = lazy(() => import("./pages/shopping-view/Home"));
@@ -29,13 +31,23 @@ const PaypalReturnPage = lazy(() => import("./pages/shopping-view/paypal_return"
 const PaymentSuccessPage = lazy(() => import("./pages/shopping-view/payment_success"));
 const SearchProducts = lazy(() => import("./pages/shopping-view/search"));
 
-// Misc
+// Brand (Logged-in) Pages
+const BrandDashboard = lazy(() => import("./pages/brand-view/BrandDashboard"));
+const BrandProducts = lazy(() => import("./pages/brand-view/BrandProducts"));
+const BrandForm = lazy(() => import("./pages/brand-view/BrandForm"));
+const BrandProfilePage = lazy(() => import("./pages/brand-view/BrandProfilePage"));
+const BrandOrdersView = lazy(() => import("./pages/brand-view/BrandOrdersView"));
+
+// Public Brand Pages
+const BrandListingPage = lazy(() => import("./pages/shopping-view/BrandListingPage"));
+const BrandPublicProfile = lazy(() => import("./pages/brand-view/BrandPublicProfile"));
+
 const NotFound = lazy(() => import("./pages/not-found/Index"));
 const UnauthPage = lazy(() => import("./pages/unauth-page/Index"));
 
 function App() {
-  const { user, isAuthenticated, isLoading } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const { user, isAuthenticated, isLoading } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -45,34 +57,40 @@ function App() {
   if (isLoading) {
     return <Skeleton className="w-full h-screen" />;
   }
-  
-  console.log(isLoading, user);
 
   return (
     <div className="flex flex-col overflow-hidden bg-white">
       <Suspense fallback={<Skeleton className="w-full h-screen" />}>
         <Routes>
-          {/* Root redirect */}
-          <Route 
-            path="/" 
+          {/* ✅ Redirect root based on user role */}
+          <Route
+            path="/"
             element={
-              <Navigate to={isAuthenticated ? 
-                (user?.role === 'admin' ? '/admin/dashboard' : '/shop/home') : 
-                '/auth/login'
-              } 
+              <Navigate
+                to={
+                  isAuthenticated
+                    ? user?.role === "admin"
+                      ? "/admin/dashboard"
+                      : "/shop/home"
+                    : "/auth/login"
+                }
               />
-            } 
+            }
           />
 
-          {/* Public Auth Routes */}
+          {/* ✅ Public Routes */}
+          <Route path="/brands" element={<BrandListingPage />} />
+          <Route path="/brands/:brandId" element={<BrandPublicProfile />} />
+
+          {/* 🔐 Auth Routes */}
           <Route path="/auth" element={<AuthLayout />}>
             <Route path="login" element={<AuthLogin />} />
             <Route path="register" element={<AuthRegister />} />
           </Route>
 
-          {/* Protected Admin Routes */}
-          <Route 
-            path="/admin" 
+          {/* 🔐 Admin Routes */}
+          <Route
+            path="/admin"
             element={
               <CheckAuth isAuthenticated={isAuthenticated} user={user}>
                 <AdminLayout />
@@ -83,11 +101,12 @@ function App() {
             <Route path="products" element={<AdminProducts />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="features" element={<AdminFeatures />} />
+            <Route path="brands" element={<AdminBrands />} />
           </Route>
 
-          {/* Protected Shop Routes */}
-          <Route 
-            path="/shop" 
+          {/* 🔐 Shopping Routes */}
+          <Route
+            path="/shop"
             element={
               <CheckAuth isAuthenticated={isAuthenticated} user={user}>
                 <ShoppingLayout />
@@ -101,9 +120,37 @@ function App() {
             <Route path="paypal-return" element={<PaypalReturnPage />} />
             <Route path="payment-success" element={<PaymentSuccessPage />} />
             <Route path="search" element={<SearchProducts />} />
+
           </Route>
 
-          {/* Misc Routes */}
+          {/* 🔐 Brand Routes */}
+          <Route
+            path="/brand"
+            element={
+              <CheckAuth isAuthenticated={isAuthenticated} user={user}>
+                {user?.role === "brand" ? (
+                  <BrandLayout />
+                ) : (
+                  <Navigate to="/unauth-page" />
+                )}
+              </CheckAuth>
+            }
+          >
+            <Route index element={<Navigate to="dashboard" />} />
+            <Route path="dashboard" element={<BrandDashboard />} />
+            <Route path="products" element={<BrandProducts />} />
+            <Route path="profile" element={<BrandProfilePage />} />
+            <Route path="create" element={<BrandForm />} />
+            <Route path="orders" element={<BrandOrdersView />} />
+            <Route path="products/:productId/edit" element={<BrandForm />} />
+            <Route path="edit-profile" element={<BrandProfilePage />} /> 
+            <Route path="upload-product" element={<BrandForm />} />
+
+
+
+          </Route>
+
+          {/* Misc */}
           <Route path="/unauth-page" element={<UnauthPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

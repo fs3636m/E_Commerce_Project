@@ -32,6 +32,13 @@ function MenuItems() {
 
   function handleNavigate(getCurrentMenuItem) {
     sessionStorage.removeItem("filters");
+
+    // Special handling for /brands
+    if (getCurrentMenuItem.id === "brands") {
+      navigate("/brands");
+      return;
+    }
+
     const currentFilter =
       getCurrentMenuItem.id !== "home" &&
       getCurrentMenuItem.id !== "products" &&
@@ -43,11 +50,13 @@ function MenuItems() {
 
     sessionStorage.setItem("filters", JSON.stringify(currentFilter));
 
-    location.pathname.includes("listing") && currentFilter !== null
-      ? setSearchParams(
-          new URLSearchParams(`?category=${getCurrentMenuItem.id}`)
-        )
-      : navigate(getCurrentMenuItem.path);
+    if (location.pathname.includes("listing") && currentFilter !== null) {
+      setSearchParams(
+        new URLSearchParams(`?category=${getCurrentMenuItem.id}`)
+      );
+    } else {
+      navigate(getCurrentMenuItem.path);
+    }
   }
 
   return (
@@ -64,6 +73,7 @@ function MenuItems() {
     </nav>
   );
 }
+
 
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth);
@@ -113,7 +123,7 @@ function HeaderRightContent() {
         <DropdownMenuTrigger asChild>
           <Avatar className="bg-black">
             <AvatarFallback className="bg-black text-white font-extrabold">
-            {user?.userName?.[0]?.toUpperCase() || "?"}
+              {user?.userName?.[0]?.toUpperCase() || "?"}
             </AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
@@ -124,6 +134,13 @@ function HeaderRightContent() {
             <UserCog className="mr-2 h-4 w-4" />
             Account
           </DropdownMenuItem>
+          {/* ✅ Brand Dashboard Link */}
+          {user?.role === "brand" && (
+            <DropdownMenuItem onClick={() => navigate("/brand/dashboard")}>
+              <HousePlug className="mr-2 h-4 w-4" />
+              Brand Dashboard
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
