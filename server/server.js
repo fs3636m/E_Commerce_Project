@@ -52,6 +52,10 @@ app.use("/api/shop/brand", require("./routes/shop/brand_private_routes"));  // b
 app.use("/api/shop", require("./routes/shop/brand_public_routes"));         // getAllPublicBrands
 app.use("/api/brands", require("./routes/brand/brand_public_routes"));      // public view by /:id + reviews
 
+app.get("/", (req, res) => {
+  res.json({ message: "API is running..." });
+});
+
 // ❌ 404 Handler
 app.use((req, res) => {
   console.log("404 - Route Not Found:", req.method, req.originalUrl);
