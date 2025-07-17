@@ -1,12 +1,12 @@
 import { Outlet } from "react-router-dom";
-import BrandSidebar from "./BrandSidebar";
+import BrandSideBar from "./BrandSideBar";
 import BrandHeader from "./BrandHeader";
 
 const BrandLayout = () => {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <BrandSidebar />
+      <BrandSideBar />
 
       {/* Main Content */}
       <div className="flex flex-col flex-1">
