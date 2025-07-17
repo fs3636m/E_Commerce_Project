@@ -1,7 +1,7 @@
 import { Menu } from "lucide-react";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
-import BrandSidebar from "./BrandSidebar";
+import BrandSideBar from "./BrandSideBar";
 import { Button } from "@/components/ui/button";
 
 function BrandHeader() {
@@ -17,7 +17,7 @@ function BrandHeader() {
               <Menu className="w-6 h-6" />
             </Button>
           </SheetTrigger>
-          <BrandSidebar open={open} setOpen={setOpen} />
+          <BrandSideBar open={open} setOpen={setOpen} />
         </Sheet>
       </div>
 
