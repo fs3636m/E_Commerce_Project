@@ -28,9 +28,9 @@ function BrandCreate() {
     };
 
     try {
-      const token = JSON.parse(sessionStorage.getItem("token"));
+      const token = sessionStorage.getItem("token");
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/brand/create`,
+        `${import.meta.env.VITE_API_URL}/api/shop/brand/create`,
         payload,
         {
           headers: {
@@ -64,7 +64,7 @@ function BrandCreate() {
         setFormData={setFormData}
         onSubmit={handleSubmit}
         buttonText="Create Brand"
-        isBtnDisabled={!uploadedImageUrl}
+        isBtnDisabled={!formData.name || !formData.bio}
       />
     </div>
   );

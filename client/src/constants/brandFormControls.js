@@ -1,44 +1,41 @@
-// src/constants/brandFormControls.js
+// constants/brandFormControls.js
 export const brandFormControls = [
   {
     name: "name",
     label: "Brand Name",
-    placeholder: "e.g. Gucci",
+    placeholder: "Enter your brand name",
     type: "text",
-    componentType: "input",
+    required: true,
   },
   {
     name: "bio",
     label: "Brand Bio",
     placeholder: "Tell us about your brand...",
-    componentType: "textarea",
+    type: "textarea",
+    required: true,
   },
   {
     name: "website",
-    label: "Website URL",
-    placeholder: "https://www.yourbrand.com",
+    label: "Website",
+    placeholder: "https://yourbrand.com",
     type: "text",
-    componentType: "input",
   },
   {
     name: "facebook",
     label: "Facebook",
     placeholder: "https://facebook.com/yourbrand",
     type: "text",
-    componentType: "input",
   },
   {
     name: "twitter",
     label: "Twitter",
     placeholder: "https://twitter.com/yourbrand",
     type: "text",
-    componentType: "input",
   },
   {
     name: "instagram",
     label: "Instagram",
     placeholder: "https://instagram.com/yourbrand",
     type: "text",
-    componentType: "input",
   },
 ];

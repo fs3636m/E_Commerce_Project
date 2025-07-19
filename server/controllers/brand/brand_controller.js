@@ -275,6 +275,40 @@ const editBrandProduct = async (req, res) => {
   }
 };
 
+const createBrand = async (req, res) => {
+  try {
+    const existingBrand = await Brand.findOne({ owner: req.user.id });
+    if (existingBrand) {
+      return res.status(400).json({ success: false, message: "Brand already exists" });
+    }
+
+    const { name, bio, profilePicture, socialLinks } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ success: false, message: "Brand name is required" });
+    }
+
+    if (!bio) {
+      return res.status(400).json({ success: false, message: "Brand bio is required" });
+    }
+
+    const brand = new Brand({
+      name,
+      bio,
+      profilePicture,
+      socialLinks,
+      owner: req.user.id,
+    });
+
+    await brand.save();
+    res.status(201).json({ success: true, brand });
+  } catch (error) {
+    console.error("Error creating brand:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
 
 // Export controller functions
 module.exports = {
@@ -288,4 +322,5 @@ module.exports = {
   editBrandProduct,
   deleteBrandProduct,
   deleteBrand,
+  createBrand
 };

@@ -1,7 +1,8 @@
 // routes/shop/brand_private_routes.js
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
+
+
 
 const { upload, imageUploadUtil } = require("../../helpers/cloudinary");
 const {
@@ -13,6 +14,7 @@ const {
   getSingleBrandProduct,
   editBrandProduct,
   deleteBrandProduct,
+  createBrand
 } = require("../../controllers/brand/brand_controller");
 const { getBrandOrders } = require("../../controllers/brand/brand_order_controller");
 const { getBrandSummary } = require("../../controllers/brand/brand_dashboard_controller");
@@ -31,6 +33,7 @@ router.post(
 
 // ✅ (Keep the rest as is, just make sure this one above exists)
 router.get("/my-brand", authMiddleware, verifyBrand, getMyBrand);
+router.post("/create", authMiddleware, createBrand);
 router.get("/summary", authMiddleware, verifyBrand, getBrandSummary);
 router.get("/brand/orders", authMiddleware, verifyBrand, getBrandOrders);
 router.get("/my-products", authMiddleware, verifyBrand, getMyBrandProducts);
@@ -43,8 +46,7 @@ router.delete("/delete-product/:productId", authMiddleware, verifyBrand, deleteB
 // ✅ Optional: image upload
 router.post(
   "/upload-image",
-  authMiddleware,
-  verifyBrand,
+  authMiddleware, // ✅ Only auth required
   upload.single("image"),
   async (req, res) => {
     try {
@@ -57,5 +59,6 @@ router.post(
     }
   }
 );
+
 
 module.exports = router;

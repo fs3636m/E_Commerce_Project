@@ -44,6 +44,7 @@ const BrandOrdersView = lazy(() => import("./pages/brand-view/BrandOrdersView"))
 const BrandListingPage = lazy(() => import("./pages/shopping-view/BrandListingPage"));
 const BrandPublicProfile = lazy(() => import("./pages/brand-view/BrandPublicProfile"));
 
+const BrandSuccess = lazy(() => import("./pages/brand-view/BrandSuccess"));
 const NotFound = lazy(() => import("./pages/not-found/Index"));
 const UnauthPage = lazy(() => import("./pages/unauth-page/Index"));
 
@@ -152,9 +153,7 @@ function App() {
             <Route path="products/:productId/edit" element={<BrandForm />} />
             <Route path="edit-profile" element={<BrandProfilePage />} /> 
             <Route path="upload-product" element={<BrandForm />} />
-
-
-
+            <Route path="success" element={<BrandSuccess />} />
           </Route>
 
           {/* Misc */}
