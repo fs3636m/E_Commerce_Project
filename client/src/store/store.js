@@ -14,6 +14,7 @@ import brandProductSlice from "./brand/products_slice";
 import brandOrderReducer from "./brand/order_slice";
 import brandSummaryReducer from "./brand/summary_slice";
 import brandReducer from "./shop/brand_slice";
+import commonFeatureReducer from "./shop/feature_slice/index.js"; 
 
 
 const store = configureStore({
@@ -34,7 +35,8 @@ const store = configureStore({
     brandProducts: brandProductSlice,
     brandOrder: brandOrderReducer,
     brand: brandReducer,
-    brandSummary: brandSummaryReducer
+    brandSummary: brandSummaryReducer,
+    commonFeature: commonFeatureReducer
   },
 });
 

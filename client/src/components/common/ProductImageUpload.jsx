@@ -24,8 +24,8 @@ export default function ProductImageUpload({ onUpload, onRemove, image }) {
       // Dynamically choose the right route based on role
       const uploadUrl =
         userRole === "brand"
-          ? "http://localhost:5100/api/shop/brand/upload-image"
-          : "http://localhost:5100/api/admin/products/upload-image";
+          ? `${import.meta.env.VITE_API_URL}/api/shop/brand/upload-image`
+          : `${import.meta.env.VITE_API_URL}/api/admin/products/upload-image`;
 
       const response = await axios.post(uploadUrl, formData, {
         headers: {

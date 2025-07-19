@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 5100;
@@ -13,15 +14,29 @@ mongoose
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection failed:", err));
 
+// ✅ Handle multiple allowed origins from .env
+const allowedOrigins = process.env.CLIENT_BASE_URL.split(",");
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn("❌ CORS blocked origin:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
 // ✅ Middleware
-app.use(cors({
-  origin: process.env.CLIENT_BASE_URL,
-  credentials: true,
-}));
 app.use(express.json());
 app.use(cookieParser());
 
 /* ---------------- ROUTES ------------------ */
+app.use("/api/shop", require("./routes/shop/public_routes"));
 
 // 🔐 Auth
 const authRouter = require("./routes/auth/auth_route");
@@ -35,7 +50,7 @@ app.use("/api/shop/order", require("./routes/shop/order_routes"));
 app.use("/api/shop/search", require("./routes/shop/search_routes"));
 app.use("/api/shop/review", require("./routes/shop/review_routes"));
 
-// 🌟 Common Features (e.g. feature images)
+// 🌟 Common Features
 app.use("/api/common/feature", require("./routes/common/feature_routes"));
 
 // 🧑‍💻 Admin Routes
@@ -45,13 +60,13 @@ app.use("/api/admin/orders", require("./routes/admin/order_routes"));
 app.use("/api/admin", require("./routes/admin/brand_review_admin_routes"));
 app.use("/api/admin/brands", require("./routes/admin/brand_admin_routes"));
 
-
-// 🏷️ BRAND: Finalized working routes
+// 🏷️ BRAND Routes
 app.use("/api/shop", require("./routes/shop/brand_review_routes"));
-app.use("/api/shop/brand", require("./routes/shop/brand_private_routes"));  // brand dashboard, upload, edit, etc.
+app.use("/api/shop/brand", require("./routes/shop/brand_private_routes"));  // brand dashboard, upload, edit
 app.use("/api/shop", require("./routes/shop/brand_public_routes"));         // getAllPublicBrands
-app.use("/api/brands", require("./routes/brand/brand_public_routes"));      // public view by /:id + reviews
+app.use("/api/brands", require("./routes/brand/brand_public_routes"));      // public view /brands/:id + reviews
 
+// ✅ Health Check
 app.get("/", (req, res) => {
   res.json({ message: "API is running..." });
 });

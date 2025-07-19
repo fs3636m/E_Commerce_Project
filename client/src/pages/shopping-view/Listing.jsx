@@ -1,7 +1,14 @@
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useSearchParams } from "react-router-dom";
+import {
+  fetchAllFilteredProducts,
+  fetchProductDetails,
+} from "@/store/shop/products_slice";
+import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import ProductFilter from "@/components/shopping-view/Filter";
-import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import ShoppingProductTile from "@/components/shopping-view/product-tile";
+import ProductDetailsDialog from "@/components/shopping-view/product-details";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,16 +16,9 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
-import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
+import { Button } from "@/components/ui/button";
 import { ArrowUpDownIcon } from "lucide-react";
 import { sortOptions } from "@/config/Index";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchAllFilteredProducts,
-  fetchProductDetails,
-} from "@/store/shop/products_slice";
-import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 function createSearchParamsHelper(filterParams) {
@@ -26,141 +26,122 @@ function createSearchParamsHelper(filterParams) {
 
   for (const [key, value] of Object.entries(filterParams)) {
     if (Array.isArray(value) && value.length > 0) {
-      const paramValue = value.join(",");
-      queryParams.push(`${key}=${encodeURIComponent(paramValue)}`);
+      queryParams.push(`${key}=${encodeURIComponent(value.join(","))}`);
     }
   }
-  console.log(queryParams, "queryParams");
+
   return queryParams.join("&");
 }
 
-function ShoppingList() {
+export default function ShoppingList() {
   const dispatch = useDispatch();
   const { productList, productDetails } = useSelector(
     (state) => state.shopProducts
   );
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
+
   const [filters, setFilters] = useState(null);
   const [sort, setSort] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
+
   const categorySearchParam = searchParams.get("category");
-  function handleSort(value) {
-    setSort(value);
-  }
 
-  function handleFilter(getSectionId, getCurrentOption) {
-    let cpyFilters = { ...filters };
-    const indexOfCurrentSection = Object.keys(cpyFilters).indexOf(getSectionId);
+  const handleSort = (value) => setSort(value);
 
-    if (indexOfCurrentSection === -1) {
-      cpyFilters = {
-        ...cpyFilters,
-        [getSectionId]: [getCurrentOption],
-      };
+  const handleFilter = (sectionId, option) => {
+    const updatedFilters = { ...filters };
+    const currentOptions = updatedFilters[sectionId] || [];
+
+    if (currentOptions.includes(option)) {
+      updatedFilters[sectionId] = currentOptions.filter((o) => o !== option);
     } else {
-      const indexOfCurrentOption =
-        cpyFilters[getSectionId].indexOf(getCurrentOption);
-
-      if (indexOfCurrentOption === -1)
-        cpyFilters[getSectionId].push(getCurrentOption);
-      else cpyFilters[getSectionId].splice(indexOfCurrentOption, 1);
+      updatedFilters[sectionId] = [...currentOptions, option];
     }
 
-    setFilters(cpyFilters);
-    sessionStorage.setItem("filters", JSON.stringify(cpyFilters));
-  }
+    setFilters(updatedFilters);
+    sessionStorage.setItem("filters", JSON.stringify(updatedFilters));
+  };
 
-  function handleGetProductDetails(getCurrentProductId) {
-    dispatch(fetchProductDetails(getCurrentProductId));
-  }
-  function handleAddtoCart(getCurrentProductId, getTotalStock) {
-    console.log(cartItems);
-    let getCartItems = cartItems.items || [];
+  const handleGetProductDetails = (productId) => {
+    dispatch(fetchProductDetails(productId));
+  };
 
-    if (getCartItems.length) {
-      const indexOfCurrentItem = getCartItems.findIndex(
-        (item) => item.productId === getCurrentProductId
-      );
-      if (indexOfCurrentItem > -1) {
-        const getQuantity = getCartItems[indexOfCurrentItem].quantity;
-        if (getQuantity + 1 > getTotalStock) {
-          toast(`Only ${getQuantity} quantity can be added for this item`);
+  const handleAddtoCart = (productId, stock) => {
+    const items = cartItems.items || [];
+    const existing = items.find((item) => item.productId === productId);
 
-          return;
-        }
-      }
+    if (existing && existing.quantity + 1 > stock) {
+      toast(`Only ${stock} available for this product`);
+      return;
     }
 
     dispatch(
-      addToCart({
-        userId: user?.id,
-        productId: getCurrentProductId,
-        quantity: 1,
-      })
-    ).then((data) => {
-      if (data?.payload?.success) {
+      addToCart({ userId: user?.id, productId, quantity: 1 })
+    ).then((res) => {
+      if (res?.payload?.success) {
         dispatch(fetchCartItems(user?.id));
         toast("Product added to cart");
       }
     });
-  }
+  };
 
+  // Filters/sort sync
   useEffect(() => {
     setSort("price-lowtohigh");
-    setFilters(JSON.parse(sessionStorage.getItem("filters")) || {});
+    const storedFilters = JSON.parse(sessionStorage.getItem("filters")) || {};
+    setFilters(storedFilters);
   }, [categorySearchParam]);
 
   useEffect(() => {
     if (filters && Object.keys(filters).length > 0) {
-      const createQueryString = createSearchParamsHelper(filters);
-      setSearchParams(new URLSearchParams(createQueryString));
+      const query = createSearchParamsHelper(filters);
+      setSearchParams(new URLSearchParams(query));
     }
   }, [filters]);
 
   useEffect(() => {
-    if (filters !== null && sort !== null)
-      dispatch(
-        fetchAllFilteredProducts({ filterParams: filters, sortParams: sort })
-      );
+    if (filters !== null && sort !== null) {
+      dispatch(fetchAllFilteredProducts({ filterParams: filters, sortParams: sort }));
+    }
   }, [dispatch, sort, filters]);
 
   useEffect(() => {
     if (productDetails !== null) setOpenDetailsDialog(true);
   }, [productDetails]);
 
-  console.log(productList, "productListproductList");
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-6 p-4 md:p-6">
-      <ProductFilter filters={filters} handleFilter={handleFilter} />
-      <div className="bg-background w-full rounded-lg shadow-sm">
-        <div className="p-4 border-b flex items-center justify-between">
-          <h2 className="text-lg font-extrabold">All Products</h2>
+    <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4 md:gap-6 p-4 md:p-6">
+      {/* Filter Sidebar */}
+      <aside className="space-y-4">
+        <ProductFilter filters={filters} handleFilter={handleFilter} />
+      </aside>
+
+      {/* Main Content */}
+      <div className="w-full">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4 border-b pb-3">
+          <h2 className="text-xl font-semibold tracking-tight">All Products</h2>
           <div className="flex items-center gap-3">
-            <span className="text-muted-foreground">
-              {productList?.length} Products
+            <span className="text-sm text-muted-foreground">
+              {productList?.length || 0} items
             </span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-2"
                 >
                   <ArrowUpDownIcon className="h-4 w-4" />
-                  <span>Sort by</span>
+                  Sort by
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[200px]">
+              <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuRadioGroup value={sort} onValueChange={handleSort}>
-                  {sortOptions.map((sortItem) => (
-                    <DropdownMenuRadioItem
-                      value={sortItem.id}
-                      key={sortItem.id}
-                    >
-                      {sortItem.label}
+                  {sortOptions.map((item) => (
+                    <DropdownMenuRadioItem key={item.id} value={item.id}>
+                      {item.label}
                     </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
@@ -168,18 +149,25 @@ function ShoppingList() {
             </DropdownMenu>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-          {productList && productList.length > 0
-            ? productList.map((productItem) => (
-                <ShoppingProductTile
-                  handleGetProductDetails={handleGetProductDetails}
-                  product={productItem}
-                  handleAddtoCart={handleAddtoCart}
-                />
-              ))
-            : null}
+
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+          {productList && productList.length > 0 ? (
+            productList.map((product) => (
+              <ShoppingProductTile
+                key={product._id}
+                product={product}
+                handleGetProductDetails={handleGetProductDetails}
+                handleAddtoCart={handleAddtoCart}
+              />
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground">No products found.</p>
+          )}
         </div>
       </div>
+
+      {/* Product Details Dialog */}
       <ProductDetailsDialog
         open={openDetailsDialog}
         setOpen={setOpenDetailsDialog}
@@ -188,5 +176,3 @@ function ShoppingList() {
     </div>
   );
 }
-
-export default ShoppingList;

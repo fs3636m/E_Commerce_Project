@@ -11,6 +11,7 @@ const AdminLayout = lazy(() => import("./components/admin-view/Layout"));
 const ShoppingLayout = lazy(() => import("./components/shopping-view/Layout"));
 const BrandLayout = lazy(() => import("./components/brand-view/BrandLayout"));
 
+
 // Auth Pages
 const AuthLogin = lazy(() => import("./pages/auth-page/Login"));
 const AuthRegister = lazy(() => import("./pages/auth-page/Register"));
@@ -30,6 +31,7 @@ const ShoppingAccount = lazy(() => import("./pages/shopping-view/Account"));
 const PaypalReturnPage = lazy(() => import("./pages/shopping-view/paypal_return"));
 const PaymentSuccessPage = lazy(() => import("./pages/shopping-view/payment_success"));
 const SearchProducts = lazy(() => import("./pages/shopping-view/search"));
+const ProductDetailsPage = lazy(() => import("./components/shopping-view/product-details"));
 
 // Brand (Logged-in) Pages
 const BrandDashboard = lazy(() => import("./pages/brand-view/BrandDashboard"));
@@ -81,6 +83,9 @@ function App() {
           {/* ✅ Public Routes */}
           <Route path="/brands" element={<BrandListingPage />} />
           <Route path="/brands/:brandId" element={<BrandPublicProfile />} />
+         
+
+          
 
           {/* 🔐 Auth Routes */}
           <Route path="/auth" element={<AuthLayout />}>
@@ -120,6 +125,8 @@ function App() {
             <Route path="paypal-return" element={<PaypalReturnPage />} />
             <Route path="payment-success" element={<PaymentSuccessPage />} />
             <Route path="search" element={<SearchProducts />} />
+            <Route path="products/:productId" element={<ProductDetailsPage />} />
+
 
           </Route>
 

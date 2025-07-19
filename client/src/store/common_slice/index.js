@@ -4,18 +4,37 @@ import axios from "axios";
 const initialState = {
   isLoading: false,
   featureImageList: [],
+  featuredBrands: [],
+  featuredProducts: [],
 };
 
 export const getFeatureImages = createAsyncThunk(
-  "/order/getFeatureImages",
+  "feature/getFeatureImages",
   async () => {
     const response = await axios.get(
       `${import.meta.env.VITE_API_URL}/api/common/feature/get`
     );
-
     return response.data;
   }
 );
+
+
+export const getFeaturedBrands = createAsyncThunk(
+  "commonFeature/getFeaturedBrands",
+  async () => {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/shop/brands/featured`);
+    return res.data.brands;
+  }
+);
+
+export const getFeaturedProducts = createAsyncThunk(
+  "commonFeature/getFeaturedProducts",
+  async () => {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/shop/products/featured`);
+    return res.data.data;
+  }
+);
+
 
 export const addFeatureImage = createAsyncThunk(
   "/order/addFeatureImage",
@@ -38,7 +57,6 @@ export const deleteFeatureImage = createAsyncThunk(
     return response.data;
   }
 );
-
 
 const commonSlice = createSlice({
   name: "commonSlice",
@@ -69,7 +87,7 @@ const commonSlice = createSlice({
       .addCase(deleteFeatureImage.rejected, (state) => {
         state.isLoading = false;
       });
-  }
-});  
+  },
+});
 
 export default commonSlice.reducer;

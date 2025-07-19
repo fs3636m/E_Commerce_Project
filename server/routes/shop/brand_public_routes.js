@@ -1,4 +1,3 @@
-// OPTIONAL — remove if using only /api/brands/*
 const express = require("express");
 const router = express.Router();
 const Brand = require("../../models/brand");
@@ -19,5 +18,6 @@ router.get("/:brandId", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
+
 
 module.exports = router;
