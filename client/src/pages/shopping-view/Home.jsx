@@ -11,6 +11,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ShoppingBasket,
+  Camera
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import { getFeatureImages } from "@/store/common_slice";
 import { fetchAllBrands } from "@/store/shop/brand_slice";
 import { addToCart, fetchCartItems } from "@/store/shop/cart-slice";
 import { toast } from "sonner";
+
 
 function ShoppingHome() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -51,6 +53,8 @@ function ShoppingHome() {
     { id: "kids", label: "Kids", icon: BabyIcon },
     { id: "accessories", label: "Accessories", icon: WatchIcon },
     { id: "footwear", label: "Footwear", icon: UmbrellaIcon },
+    { id: "perfume", label: "Perfume", icon: WatchIcon },
+    { id: "Unisex", label: "Unisex", icon: Camera },
   ];
 
   const brandCategories = brandList.map((brand) => ({

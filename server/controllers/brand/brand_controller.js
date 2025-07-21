@@ -80,12 +80,14 @@ const editBrandProfile = async (req, res) => {
     if (location) brand.location = location;
 
     // 🌐 Update social links
-    brand.socialLinks = {
-      facebook: facebook || brand.socialLinks?.facebook || "",
-      instagram: instagram || brand.socialLinks?.instagram || "",
-      twitter: twitter || brand.socialLinks?.twitter || "",
-      website: website || brand.socialLinks?.website || "",
-    };
+   // 🌐 Update social links safely
+brand.socialLinks = {
+  facebook: req.body.facebook || brand.socialLinks?.facebook || "",
+  instagram: req.body.instagram || brand.socialLinks?.instagram || "",
+  twitter: req.body.twitter || brand.socialLinks?.twitter || "",
+  website: req.body.website || brand.socialLinks?.website || "",
+};
+
 
     // 🖼️ Handle profile picture
     if (req.file) {
@@ -275,6 +277,7 @@ const editBrandProduct = async (req, res) => {
   }
 };
 
+// controllers/brandController.js
 const createBrand = async (req, res) => {
   try {
     const existingBrand = await Brand.findOne({ owner: req.user.id });

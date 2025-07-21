@@ -58,14 +58,15 @@ app.use("/api/common/feature", require("./routes/common/feature_routes"));
 app.use("/api/admin/users", require("./routes/admin/user_routes"));
 app.use("/api/admin/products", require("./routes/admin/products_routes"));
 app.use("/api/admin/orders", require("./routes/admin/order_routes"));
-app.use("/api/admin", require("./routes/admin/brand_review_admin_routes"));
-app.use("/api/admin/brands", require("./routes/admin/brand_admin_routes"));
+app.use("/api/admin", require("./routes/admin/brand_admin_routes"));
+
 
 // 🏷️ BRAND Routes
 app.use("/api/shop", require("./routes/shop/brand_review_routes"));
 app.use("/api/shop/brand", require("./routes/shop/brand_private_routes"));  // brand dashboard, upload, edit
 app.use("/api/shop", require("./routes/shop/brand_public_routes"));         // getAllPublicBrands
 app.use("/api/brands", require("./routes/brand/brand_public_routes"));      // public view /brands/:id + reviews
+
 
 // ✅ Health Check
 app.get("/", (req, res) => {

@@ -19,23 +19,6 @@ export const getFeatureImages = createAsyncThunk(
 );
 
 
-export const getFeaturedBrands = createAsyncThunk(
-  "commonFeature/getFeaturedBrands",
-  async () => {
-    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/shop/brands/featured`);
-    return res.data.brands;
-  }
-);
-
-export const getFeaturedProducts = createAsyncThunk(
-  "commonFeature/getFeaturedProducts",
-  async () => {
-    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/shop/products/featured`);
-    return res.data.data;
-  }
-);
-
-
 export const addFeatureImage = createAsyncThunk(
   "/order/addFeatureImage",
   async (image) => {

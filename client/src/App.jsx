@@ -21,7 +21,7 @@ const AdminDashboard = lazy(() => import("./pages/admin-view/Dashboard"));
 const AdminProducts = lazy(() => import("./pages/admin-view/Product"));
 const AdminOrders = lazy(() => import("./pages/admin-view/Orders"));
 const AdminFeatures = lazy(() => import("./pages/admin-view/Features"));
-const AdminBrands = lazy(() => import("./pages/admin-view/AdminBrands"));
+const AdminBrands = lazy(() => import("./components/admin-view/AdminBrands"));
 
 // Shopping Pages
 const ShoppingHome = lazy(() => import("./pages/shopping-view/Home"));

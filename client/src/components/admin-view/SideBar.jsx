@@ -25,7 +25,7 @@ const adminSidebarMenuItems = [
   {
     id: "brands",
     label: "Brands",
-    path: "/admin/brand",
+    path: "/admin/brands",
     icon: <Slack />,
   },
   {

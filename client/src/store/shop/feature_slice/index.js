@@ -1,70 +1,61 @@
-
+// src/store/homepageFeatureSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-
-// 🔁 Thunks
-export const getFeaturedBrands = createAsyncThunk(
-  "commonFeature/getFeaturedBrands",
-  async (_, thunkAPI) => {
+export const getHomepageBrands = createAsyncThunk(
+  "homepage/getHomepageBrands",
+  async (_, { rejectWithValue }) => {
     try {
-      const res = await axios.get("/api/brands/featured");
-      return res.data.brands;
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/brand/homepage`);
+      return response.data.brands;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch brands");
     }
   }
 );
 
-export const getFeaturedProducts = createAsyncThunk(
-  "commonFeature/getFeaturedProducts",
-  async (_, thunkAPI) => {
+export const getHomepageProducts = createAsyncThunk(
+  "homepage/getHomepageProducts",
+  async (_, { rejectWithValue }) => {
     try {
-      const res = await axios.get("/api/shop/products/featured");
-      return res.data.products;
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/product/homepage`);
+      return response.data.products;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data || error.message);
+      return rejectWithValue(error.response?.data?.message || "Failed to fetch products");
     }
   }
 );
 
-// 🔧 Slice
-const initialState = {
-  featuredBrands: [],
-  featuredProducts: [],
-  isLoading: false,
-  error: null,
-};
-
-const commonFeatureSlice = createSlice({
-  name: "commonFeature",
-  initialState,
-  reducers: {},
+const homepageFeatureSlice = createSlice({
+  name: "homepage",
+  initialState: {
+    isLoading: false,
+    homepageBrands: [],
+    homepageProducts: [],
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(getFeaturedBrands.pending, (state) => {
+      .addCase(getHomepageBrands.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(getFeaturedBrands.fulfilled, (state, action) => {
+      .addCase(getHomepageBrands.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.featuredBrands = action.payload;
+        state.homepageBrands = action.payload;
       })
-      .addCase(getFeaturedBrands.rejected, (state, action) => {
+      .addCase(getHomepageBrands.rejected, (state) => {
         state.isLoading = false;
-        state.error = action.payload;
       })
-      .addCase(getFeaturedProducts.pending, (state) => {
+      .addCase(getHomepageProducts.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(getFeaturedProducts.fulfilled, (state, action) => {
+      .addCase(getHomepageProducts.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.featuredProducts = action.payload;
+        state.homepageProducts = action.payload;
       })
-      .addCase(getFeaturedProducts.rejected, (state, action) => {
+      .addCase(getHomepageProducts.rejected, (state) => {
         state.isLoading = false;
-        state.error = action.payload;
       });
   },
 });
 
-export default commonFeatureSlice.reducer;
+export default homepageFeatureSlice.reducer;

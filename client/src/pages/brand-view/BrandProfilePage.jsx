@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 function BrandProfilePage() {
   const { user } = useSelector((state) => state.auth);
   const [loading, setLoading] = useState(false);
+  const [bio, setBio] = useState("");
   const defaultImage =
     "https://res.cloudinary.com/dn0v2birb/image/upload/v1752538598/default_assets/brand_default.jpg";
 
@@ -23,9 +24,15 @@ function BrandProfilePage() {
     twitter: "",
     website: "",
   });
+  
 
   // Load brand profile
   useEffect(() => {
+    if (!user?.token) {
+  toast.error("❌ You are not logged in. Please log in again.");
+  return;
+}
+
     const fetchBrand = async () => {
       try {
         const res = await axios.get(
@@ -40,7 +47,7 @@ function BrandProfilePage() {
         if (res.data.success) {
           const brand = res.data.brand;
           setName(brand.name || "");
-          setDescription(brand.description || "");
+          setBio(brand.bio || "");
           setProfilePicture(brand.profilePicture || "");
           setSocialLinks(brand.socialLinks || {});
         }
@@ -68,42 +75,53 @@ function BrandProfilePage() {
 
   // Handle profile update
   const handleSaveProfile = async () => {
-    if (!user?.token) return;
+  if (!user?.token) {
+    toast.error("❌ You are not logged in.");
+    return;
+  }
 
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("description", description);
-    formData.append("socialLinks", JSON.stringify(socialLinks));
+  const formData = new FormData();
+  formData.append("name", name);
+  formData.append("bio", bio); // ✅ not 'description'
+  formData.append("facebook", socialLinks.facebook || "");
+  formData.append("instagram", socialLinks.instagram || "");
+  formData.append("twitter", socialLinks.twitter || "");
+  formData.append("website", socialLinks.website || "");
 
-    if (selectedImageFile) {
-      formData.append("image", selectedImageFile);
-    }
+  if (selectedImageFile) {
+    formData.append("image", selectedImageFile);
+  }
 
-    setLoading(true);
-    try {
-      const res = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/shop/brand/edit`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      if (res.data.success) {
-        toast.success("✅ Profile updated");
-      } else {
-        toast.error("❌ Update failed");
+  setLoading(true);
+  try {
+    const res = await axios.put(
+      `${import.meta.env.VITE_API_URL}/api/shop/brand/edit`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+          "Content-Type": "multipart/form-data",
+        },
       }
-    } catch (err) {
-      toast.error("❌ Update error");
-      console.error(err);
-    } finally {
-      setLoading(false);
+    );
+
+    if (res.data.success) {
+      toast.success("✅ Profile updated successfully");
+    } else {
+      toast.error("⚠️ Something went wrong while updating.");
     }
-  };
+  } catch (err) {
+    console.error("🔥 UPDATE ERROR:", err);
+
+    if (err.response?.status === 401) {
+      toast.error("🔐 Please login again.");
+    } else {
+      toast.error("❌ Failed to update profile");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
@@ -118,7 +136,7 @@ function BrandProfilePage() {
 
         {/* Description */}
         <div>
-          <Label>Description</Label>
+          <Label>bio</Label>
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}

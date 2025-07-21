@@ -14,7 +14,8 @@ import brandProductSlice from "./brand/products_slice";
 import brandOrderReducer from "./brand/order_slice";
 import brandSummaryReducer from "./brand/summary_slice";
 import brandReducer from "./shop/brand_slice";
-import commonFeatureReducer from "./shop/feature_slice/index.js"; 
+import homepageFeatureReducer from "./shop/feature_slice";
+import adminBrandReducer from './admin/admin_brand_slice';
 
 
 const store = configureStore({
@@ -36,7 +37,8 @@ const store = configureStore({
     brandOrder: brandOrderReducer,
     brand: brandReducer,
     brandSummary: brandSummaryReducer,
-    commonFeature: commonFeatureReducer
+    homepageFeature: homepageFeatureReducer,
+    adminBrands: adminBrandReducer,
   },
 });
 
