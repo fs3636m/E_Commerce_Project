@@ -16,7 +16,7 @@ mongoose
 
 
 const allowedOrigins = [
-  process.env.CLIENT_BASE_URI,
+  process.env.CLIENT_BASE_URL,
   "http://localhost:5173"
 ];
 
