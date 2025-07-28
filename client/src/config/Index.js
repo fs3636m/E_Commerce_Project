@@ -63,6 +63,8 @@ export const addProductFormElements = [
       { id: "kids", label: "Kids" },
       { id: "accessories", label: "Accessories" },
       { id: "footwear", label: "Footwear" },
+      { id: "perfume", label: "Perfume" },
+      { id: "unisex", label: "Unisex" },
     ],
   },
   {
@@ -154,6 +156,9 @@ export const categoryOptionsMap = {
   kids: "Kids",
   accessories: "Accessories",
   footwear: "Footwear",
+  perfume: "Perfume",
+  unisex: "Unisex",
+
 };
 
 export const brandOptionsMap = {
@@ -172,6 +177,8 @@ export const filterOptions = {
     { id: "kids", label: "Kids" },
     { id: "accessories", label: "Accessories" },
     { id: "footwear", label: "Footwear" },
+    { id: "perfume", label: "Perfume" },
+    { id: "unisex", label: "Unisex" },
   ],
   brand: [
     { id: "nike", label: "Nike" },

@@ -5,8 +5,9 @@ const initialState = {
   isAuthenticated: false,
   isLoading: true,
   user: null,
-  token: null
+  token: sessionStorage.getItem("token") || null, // <- restore here
 };
+
 
 export const registerUser = createAsyncThunk(
   'auth/register',

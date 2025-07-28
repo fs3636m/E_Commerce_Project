@@ -2,77 +2,91 @@ import { Card, CardContent, CardFooter } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { brandOptionsMap, categoryOptionsMap } from "@/config/Index";
+
 function ShoppingProductTile({
   product,
   handleGetProductDetails,
   handleAddtoCart,
 }) {
-  // Log brand and category values
-  console.log("brandOptionsMap lookup:", brandOptionsMap[product?.brand]);
-  console.log("categoryOptionsMap lookup:", categoryOptionsMap[product?.category]);
+  const displayBrand =
+    typeof product.brand === "string"
+      ? brandOptionsMap[product.brand] || product.brand
+      : product.brand?.name || "Unknown Brand";
+
+  const displayCategory =
+    categoryOptionsMap[product.category] || product.category || "Unknown";
 
   return (
-    <Card className="w-full max-w-sm mx-auto">
-      <div onClick={() => handleGetProductDetails(product?._id)}>
-         <div className="relative">
+    <Card className="w-full h-full flex flex-col justify-between rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
+      <div
+        onClick={() => handleGetProductDetails(product._id)}
+        className="cursor-pointer"
+      >
+        <div className="relative">
           <img
-            src={product?.image}
-            alt={product?.title}
-            className="w-full h-[355px]  rounded-t-lg"
+            src={product.image}
+            alt={product.title}
+            className="w-full h-[355px] object-cover rounded-t-xl"
           />
-          {product?.totalStock === 0 ? (
+
+          {/* Stock + Sale Badges */}
+          {product.totalStock === 0 && (
             <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
               Out Of Stock
             </Badge>
-          ) : product?.totalStock < 10 ? (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
-              {`Only ${product?.totalStock} items left`}
+          )}
+          {product.totalStock > 0 && product.totalStock < 10 && (
+            <Badge className="absolute top-2 left-2 bg-yellow-500 hover:bg-yellow-600">
+              Only {product.totalStock} left
             </Badge>
-          ) : product?.salePrice > 0 ? (
-            <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
-              Sale
+          )}
+          {product.salePrice > 0 && (
+            <Badge className="absolute top-2 right-2 bg-green-600 hover:bg-green-700">
+              On Sale
             </Badge>
-          ) : null}
+          )}
         </div>
-        <CardContent className="p-4">
-          <h2 className="text-xl font-bold mb-2">{product?.title}</h2>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-[16px] text-muted-foreground">
-              {categoryOptionsMap[product?.category]?.title || "Unknown Category"}
-            </span>
-            <span className="text-[16px] text-muted-foreground">
-              {brandOptionsMap[product?.brand]?.title || "Unknown Brand"}
-            </span>
+
+        <CardContent className="p-4 space-y-3">
+          <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 truncate">
+            {product.title}
+          </h2>
+
+          <div className="flex flex-wrap gap-2 justify-between text-base md:text-lg font-medium text-gray-800">
+            <span className="capitalize">{displayCategory}</span>
+            <span className="capitalize">{displayBrand}</span>
           </div>
-          <div className="flex justify-between items-center mb-2">
+
+          <div className="flex justify-between items-center mt-2">
             <span
-              className={`${
-                product?.salePrice > 0 ? "line-through" : ""
-              } text-lg font-semibold text-primary`}
+              className={`text-lg md:text-xl font-semibold ${
+                product.salePrice > 0
+                  ? "line-through text-gray-400"
+                  : "text-gray-900"
+              }`}
             >
-              ${product?.price}
+              ${product.price}
             </span>
-            {product?.salePrice > 0 ? (
-              <span className="text-lg font-semibold text-primary">
-                ${product?.salePrice}
+
+            {product.salePrice > 0 && (
+              <span className="text-lg md:text-xl font-bold text-primary">
+                ${product.salePrice}
               </span>
-            ) : null}
+            )}
           </div>
         </CardContent>
       </div>
-      <CardFooter>
-        {product?.totalStock === 0 ? (
-          <Button className="w-full opacity-60 cursor-not-allowed">
-            Out Of Stock
-          </Button>
-        ) : (
-          <Button
-            onClick={() => handleAddtoCart(product?._id, product?.totalStock)}
-            className="w-full cursor-pointer"
-          >
-            Add to cart
-          </Button>
-        )}
+
+      <CardFooter className="p-4">
+        <Button
+          onClick={() => handleAddtoCart(product._id, product.totalStock)}
+          disabled={product.totalStock === 0}
+          className={`w-full py-3 text-base md:text-lg ${
+            product.totalStock === 0 ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          {product.totalStock === 0 ? "Out Of Stock" : "Add to Cart"}
+        </Button>
       </CardFooter>
     </Card>
   );

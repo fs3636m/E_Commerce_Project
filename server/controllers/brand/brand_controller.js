@@ -3,8 +3,7 @@ const Brand = require("../../models/brand");
 const Product = require("../../models/products");
 const { imageUploadUtil } = require("../../helpers/cloudinary");
 
-
-// 🌐 Public: Get all brands
+// 🌐 Get all brands
 const getAllBrands = async (req, res) => {
   try {
     const brands = await Brand.find().select("name profilePicture rating");
@@ -14,20 +13,29 @@ const getAllBrands = async (req, res) => {
   }
 };
 
-// 🌐 Public: Get single brand by ID with products
+// 🌐 Get brand by ID (with products)
 const getBrandById = async (req, res) => {
   try {
     const brandId = req.params.id;
     if (!mongoose.Types.ObjectId.isValid(brandId)) {
-      return res.status(400).json({ success: false, message: "Invalid brand ID" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid brand ID" });
     }
 
-    const brand = await Brand.findById(brandId).populate("owner", "username email");
+    const brand = await Brand.findById(brandId).populate(
+      "owner",
+      "username email"
+    );
     if (!brand) {
-      return res.status(404).json({ success: false, message: "Brand not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Brand not found" });
     }
 
-    const products = await Product.find({ brand: brand._id });
+    const products = await Product.find({
+      $or: [{ brand: brand._id }, { brand: brand._id.toString() }],
+    });
 
     res.status(200).json({
       success: true,
@@ -38,12 +46,16 @@ const getBrandById = async (req, res) => {
   }
 };
 
-// 🔐 GET: My brand
+// 🔐 Get brand owned by current user
 const getMyBrand = async (req, res) => {
   try {
-    const brand = await Brand.findOne({ owner: req.user.id }).populate("products");
+    const brand = await Brand.findOne({ owner: req.user.id }).populate(
+      "products"
+    );
     if (!brand) {
-      return res.status(404).json({ success: false, message: "Brand not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Brand not found" });
     }
 
     res.status(200).json({ success: true, brand });
@@ -52,17 +64,16 @@ const getMyBrand = async (req, res) => {
   }
 };
 
+// ✅ Edit brand profile
 const editBrandProfile = async (req, res) => {
   try {
     const brand = await Brand.findOne({ owner: req.user.id });
-
     if (!brand) {
       return res
         .status(404)
         .json({ success: false, message: "Brand not found" });
     }
 
-    // 📦 Extract fields from body
     const {
       name,
       bio,
@@ -71,64 +82,82 @@ const editBrandProfile = async (req, res) => {
       instagram,
       twitter,
       website,
-      imageUrl, // in case frontend already uploaded
+      imageUrl,
     } = req.body;
 
-    // ✏️ Update basic info
-    if (name) brand.name = name;
-   if (bio) brand.bio = bio;
-    if (location) brand.location = location;
+    // Validate incoming data
+    if (
+      !name &&
+      !bio &&
+      !location &&
+      !facebook &&
+      !instagram &&
+      !twitter &&
+      !website &&
+      !imageUrl
+    ) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No updates provided" });
+    }
 
-    // 🌐 Update social links
-   // 🌐 Update social links safely
-brand.socialLinks = {
-  facebook: req.body.facebook || brand.socialLinks?.facebook || "",
-  instagram: req.body.instagram || brand.socialLinks?.instagram || "",
-  twitter: req.body.twitter || brand.socialLinks?.twitter || "",
-  website: req.body.website || brand.socialLinks?.website || "",
-};
+    // Update brand document
+    brand.name = name || brand.name;
+    brand.bio = bio || brand.bio;
+    brand.location = location || brand.location;
 
+    brand.socialLinks = {
+      facebook: facebook || brand.socialLinks?.facebook || "",
+      instagram: instagram || brand.socialLinks?.instagram || "",
+      twitter: twitter || brand.socialLinks?.twitter || "",
+      website: website || brand.socialLinks?.website || "",
+    };
 
-    // 🖼️ Handle profile picture
     if (req.file) {
-      const uploaded = await imageUploadUtil(req.file.buffer);
-      brand.profilePicture = uploaded.secure_url;
+      try {
+        const uploaded = await imageUploadUtil(req.file.buffer);
+        brand.profilePicture = uploaded.secure_url;
+      } catch (error) {
+        console.error("Error uploading image:", error.message);
+        return res
+          .status(500)
+          .json({ success: false, message: "Error uploading image" });
+      }
     } else if (imageUrl) {
       brand.profilePicture = imageUrl;
     }
 
     await brand.save();
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: "Brand profile updated",
       brand,
     });
   } catch (error) {
-    console.error("🔥 Error updating brand:", error.message);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
+    console.error("Error editing brand:", error.message);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-
-// 🔐 POST: Add product (uses logged-in user's brand)
+// 🔐 Create a product for the logged-in brand
 const addProduct = async (req, res) => {
   try {
     const { title, description, price, category, image } = req.body;
 
     if (!title || !description || !price || !category) {
-      return res.status(400).json({ success: false, message: "All fields are required." });
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required." });
     }
 
     const brand = await Brand.findOne({ owner: req.user.id });
-    if (!brand) return res.status(404).json({ success: false, message: "Brand not found" });
+    if (!brand)
+      return res
+        .status(404)
+        .json({ success: false, message: "Brand not found" });
 
-    let imageUrl = image; // ✅ Use the passed image first
-
-    // If image not passed, fallback to uploading it from file
+    let imageUrl = image;
     if (!imageUrl && req.file) {
       const uploaded = await imageUploadUtil(req.file.buffer);
       imageUrl = uploaded.secure_url;
@@ -139,120 +168,84 @@ const addProduct = async (req, res) => {
       description,
       price,
       category,
-      image: imageUrl || "", // fallback in case both are missing
+      image: imageUrl || "",
       brand: brand._id,
     });
 
     await newProduct.save();
-
     await Brand.findByIdAndUpdate(brand._id, {
       $push: { products: newProduct._id },
     });
 
-    res.status(201).json({
-      success: true,
-      message: "Product created successfully",
-      product: newProduct,
-    });
+    res.status(201).json({ success: true, product: newProduct });
   } catch (error) {
-    console.error("🔥 Error adding product:", error);
-    res.status(500).json({ success: false, message: "Internal server error" });
-  }
-};
-
-// 🔐 GET: My brand products
-const getMyBrandProducts = async (req, res) => {
-  try {
-    const brand = await Brand.findOne({ owner: req.user.id });
-    if (!brand) {
-      return res.status(404).json({ success: false, message: "Brand not found" });
-    }
-
-    const products = await Product.find({ brand: brand._id });
-    res.status(200).json({ success: true, products });
-  } catch (error) {
-    console.error("Error fetching brand products:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// 🔐 GET: Single brand product
+// 🔐 Get all products for brand owner
+const getMyBrandProducts = async (req, res) => {
+  try {
+    const brand = await Brand.findOne({ owner: req.user.id });
+    if (!brand) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Brand not found" });
+    }
+
+    const products = await Product.find({
+      $or: [{ brand: brand._id }, { brand: brand._id.toString() }],
+    });
+
+    res.status(200).json({ success: true, products });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// 🔐 Get one product from brand
 const getSingleBrandProduct = async (req, res) => {
   try {
     const brand = await Brand.findOne({ owner: req.user.id });
     const product = await Product.findById(req.params.id);
 
-    if (!brand || !product || product.brand.toString() !== brand._id.toString()) {
-      return res.status(404).json({ success: false, message: "Product not found" });
+    if (
+      !brand ||
+      !product ||
+      product.brand?.toString() !== brand._id.toString()
+    ) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     }
 
     res.status(200).json({ success: true, product });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-};
-
-// delete brand 
-const deleteBrand = async (req, res) => {
-  try {
-    const brand = await Brand.findOne({ owner: req.user.id });
-    if (!brand) {
-      return res.status(404).json({ success: false, message: "Brand not found" });
-    }
-
-    await Brand.findByIdAndDelete(brand._id);
-    res.status(200).json({ success: true, message: "Brand deleted successfully" });
-  } catch (err) {
-    console.error("🔥 Error deleting brand:", err.message);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-// ✅ DELETE product
-const deleteBrandProduct = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const brandId = req.user._id;
-
-    const product = await Product.findOne({
-      _id: productId,
-      brandRef: brandId, // secure: only allow brand owner to delete
-    });
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-    }
-
-    await Product.deleteOne({ _id: productId });
-
-    return res.status(200).json({
-      success: true,
-      message: "Product deleted successfully",
-    });
-  } catch (err) {
-    console.error("❌ Error deleting product:", err.message);
-    return res.status(500).json({
-      success: false,
-      message: "Server error while deleting product",
-    });
-  }
-};
-
-// ✅ EDIT product
+// 🔐 Edit brand product
 const editBrandProduct = async (req, res) => {
   try {
     const { productId } = req.params;
 
+    const brand = await Brand.findOne({ owner: req.user.id });
+    if (!brand) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Brand not found" });
+    }
+
     const product = await Product.findOne({
       _id: productId,
-      brandRef: req.user._id, // must match brand user
+      $or: [{ brand: brand._id }, { brand: brand._id.toString() }],
     });
 
     if (!product) {
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     }
 
     // update fields
@@ -277,25 +270,66 @@ const editBrandProduct = async (req, res) => {
   }
 };
 
-// controllers/brandController.js
+// 🔐 Delete brand product
+const deleteBrandProduct = async (req, res) => {
+  try {
+    const brand = await Brand.findOne({ owner: req.user.id });
+    const { productId } = req.params;
+
+    const product = await Product.findOne({
+      _id: productId,
+      brand: brand._id,
+    });
+
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    await Product.deleteOne({ _id: productId });
+    res.status(200).json({ success: true, message: "Product deleted" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// 🔐 Delete brand account
+const deleteBrand = async (req, res) => {
+  try {
+    const brand = await Brand.findOne({ owner: req.user.id });
+    if (!brand) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Brand not found" });
+    }
+
+    await Brand.findByIdAndDelete(brand._id);
+    res.status(200).json({ success: true, message: "Brand deleted" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// 🔐 Create a new brand
 const createBrand = async (req, res) => {
   try {
-    const existingBrand = await Brand.findOne({ owner: req.user.id });
-    if (existingBrand) {
-      return res.status(400).json({ success: false, message: "Brand already exists" });
+    const existing = await Brand.findOne({ owner: req.user.id });
+    if (existing) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Brand already exists" });
     }
 
     const { name, bio, profilePicture, socialLinks } = req.body;
 
-    if (!name) {
-      return res.status(400).json({ success: false, message: "Brand name is required" });
+    if (!name || !bio) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Name and bio required" });
     }
 
-    if (!bio) {
-      return res.status(400).json({ success: false, message: "Brand bio is required" });
-    }
-
-    const brand = new Brand({
+    const newBrand = new Brand({
       name,
       bio,
       profilePicture,
@@ -303,17 +337,14 @@ const createBrand = async (req, res) => {
       owner: req.user.id,
     });
 
-    await brand.save();
-    res.status(201).json({ success: true, brand });
+    await newBrand.save();
+    res.status(201).json({ success: true, brand: newBrand });
   } catch (error) {
-    console.error("Error creating brand:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-
-
-// Export controller functions
+// ✅ Export all functions
 module.exports = {
   getAllBrands,
   getBrandById,
@@ -325,5 +356,5 @@ module.exports = {
   editBrandProduct,
   deleteBrandProduct,
   deleteBrand,
-  createBrand
+  createBrand,
 };

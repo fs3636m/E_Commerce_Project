@@ -1,19 +1,19 @@
 const mongoose = require("mongoose");
-
 const ProductSchema = new mongoose.Schema(
   {
     image: String,
     title: String,
     description: String,
-    category: String,
 
-    // Admin still uses this
-    brand: String,
+    category: {
+      type: String, // for now, use string categories like 'men', 'kids'
+      required: true,
+    },
 
-    // Brand users will use this
-    brandRef: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Brand",
+    // Can be either an ObjectId OR a hardcoded string like "nike"
+    brand: {
+      type: mongoose.Schema.Types.Mixed, // allow ObjectId or String
+      required: true,
     },
 
     price: Number,
