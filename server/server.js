@@ -9,14 +9,14 @@ const PORT = process.env.PORT || 5100;
 
 // ✅ Connect MongoDB
 mongoose
-  .connect(process.env.MONGO_URL)
+  .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB connection failed:", err));
 
 
 
 const allowedOrigins = [
-  process.env.CLIENT_BASE_URL,
+  process.env.CLIENT_BASE_URI,
   "http://localhost:5173"
 ];
 
