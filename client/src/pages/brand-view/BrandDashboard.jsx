@@ -58,120 +58,175 @@ const BrandDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-12">
-  {/* ✅ Brand Info */}
-  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-    <img
-      src={brand.profilePicture || defaultProfileImage}
-      alt={brand.name}
-      className="w-24 h-24 rounded-full object-cover border mx-auto sm:mx-0"
-    />
-    <div className="flex-1 text-center sm:text-left">
-      <h1 className="text-2xl sm:text-3xl font-bold">{brand.name}</h1>
-      <p className="text-muted-foreground">{brand.bio}</p>
-      <div className="mt-2 flex flex-wrap justify-center sm:justify-start gap-3 text-sm text-blue-600">
-        {brand.socialLinks?.website && (
-          <a href={brand.socialLinks.website} target="_blank" className="underline">Website</a>
-        )}
-        {brand.socialLinks?.instagram && (
-          <a href={brand.socialLinks.instagram} target="_blank" className="underline">Instagram</a>
-        )}
-        {brand.socialLinks?.facebook && (
-          <a href={brand.socialLinks.facebook} target="_blank" className="underline">Facebook</a>
-        )}
-        {brand.socialLinks?.twitter && (
-          <a href={brand.socialLinks.twitter} target="_blank" className="underline">Twitter</a>
-        )}
-      </div>
-    </div>
+      {/* ✅ Brand Info Card */}
+      <div className="bg-white p-4 rounded-xl shadow-sm border">
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-4">
+          {/* Avatar */}
+          <img
+            src={brand.profilePicture || defaultProfileImage}
+            alt={brand.name}
+            className="w-24 h-24 rounded-full object-cover border"
+          />
 
-    <div className="flex justify-center sm:justify-end">
-      <Button variant="outline" onClick={() => navigate("/brand/edit-profile")}>
-        <PencilIcon className="w-4 h-4 mr-2" />
-        Edit Profile
-      </Button>
-    </div>
-  </div>
+          {/* Info */}
+          <div className="flex-1 w-full space-y-2 text-center md:text-left">
+            <h1 className="text-2xl font-bold">{brand.name}</h1>
+            <p className="text-sm text-muted-foreground">{brand.bio}</p>
 
-  {/* ✅ Summary Cards */}
-  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
-    <Card className="p-4 text-center">
-      <p className="text-muted-foreground text-sm">Products</p>
-      <p className="text-xl font-semibold">
-        {typeof summary?.totalProducts === "number" ? summary.totalProducts : "—"}
-      </p>
-    </Card>
-    <Card className="p-4 text-center">
-      <p className="text-muted-foreground text-sm">Orders</p>
-      <p className="text-xl font-semibold">{summary?.totalOrders ?? "—"}</p>
-    </Card>
-    <Card className="p-4 text-center">
-      <p className="text-muted-foreground text-sm">Units Sold</p>
-      <p className="text-xl font-semibold">{summary?.totalUnitsSold ?? "—"}</p>
-    </Card>
-    <Card className="p-4 text-center">
-      <p className="text-muted-foreground text-sm">Revenue</p>
-      <p className="text-xl font-semibold">{formatGBP(summary?.totalRevenue ?? 0)}</p>
-    </Card>
-  </div>
-
-  {/* ✅ Products */}
-  <div>
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
-      <h2 className="text-lg font-bold">Your Products</h2>
-      <Button onClick={() => navigate("/brand/products")}>
-        <PlusIcon className="w-4 h-4 mr-2" />
-        Manage Products
-      </Button>
-    </div>
-
-    {products.length > 0 ? (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {products.map((product) => (
-          <Card key={product._id} className="p-3 space-y-2">
-            <img
-              src={product.image || "/placeholder-product.jpg"}
-              alt={product.title}
-              className="w-full h-40 object-cover rounded-md"
-            />
-            <p className="font-semibold">{product.title}</p>
-            <p className="text-muted-foreground text-sm">{formatGBP(product.price)}</p>
-          </Card>
-        ))}
-      </div>
-    ) : (
-      <p className="text-muted-foreground">No products uploaded yet.</p>
-    )}
-  </div>
-
-  {/* ✅ Brand Reviews */}
-  <div className="bg-white p-5 border rounded-xl shadow-sm">
-    <h2 className="text-lg font-bold mb-4">Customer Reviews</h2>
-    {isLoading ? (
-      <Skeleton className="h-24 w-full rounded-md" />
-    ) : reviews.length === 0 ? (
-      <p className="text-muted-foreground">No reviews yet for your brand.</p>
-    ) : (
-      <div className="space-y-4">
-        {reviews.map((rev) => (
-          <div key={rev._id} className="p-3 border rounded-md bg-gray-50">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm font-medium">{rev.reviewValue} stars</span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {new Date(rev.createdAt).toLocaleDateString()}
-              </span>
+            {/* Social Links */}
+            <div className="flex flex-wrap justify-center md:justify-start gap-x-4 gap-y-1 text-sm">
+              {brand.socialLinks?.website && (
+                <a
+                  href={brand.socialLinks.website}
+                  target="_blank"
+                  className="underline text-blue-700 break-all"
+                >
+                  Website
+                </a>
+              )}
+              {brand.socialLinks?.instagram && (
+                <a
+                  href={brand.socialLinks.instagram}
+                  target="_blank"
+                  className="underline text-pink-600 break-all"
+                >
+                  Instagram
+                </a>
+              )}
+              {brand.socialLinks?.facebook && (
+                <a
+                  href={brand.socialLinks.facebook}
+                  target="_blank"
+                  className="underline text-blue-500 break-all"
+                >
+                  Facebook
+                </a>
+              )}
+              {brand.socialLinks?.twitter && (
+                <a
+                  href={brand.socialLinks.twitter}
+                  target="_blank"
+                  className="underline text-sky-500 break-all"
+                >
+                  Twitter
+                </a>
+              )}
             </div>
-            <p className="text-sm">{rev.reviewMessage}</p>
-            <p className="text-xs text-muted-foreground mt-1">– {rev.userName}</p>
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-</div>
 
+            {/* Review Line (optional) */}
+            <div className="flex items-center justify-center md:justify-start gap-2 text-sm mt-2">
+              <Star className="w-4 h-4 text-yellow-500" />
+              <span className="text-sm text-black/80">0.0 (0 reviews)</span>
+            </div>
+
+            {/* Edit Button */}
+            <div className="flex justify-center md:justify-start mt-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => navigate("/brand/edit-profile")}
+              >
+                <PencilIcon className="w-4 h-4 mr-2" />
+                Edit Profile
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ✅ Summary Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        <Card className="p-4 text-center">
+          <p className="text-muted-foreground text-sm">Products</p>
+          <p className="text-xl font-semibold">
+            {typeof summary?.totalProducts === "number"
+              ? summary.totalProducts
+              : "—"}
+          </p>
+        </Card>
+        <Card className="p-4 text-center">
+          <p className="text-muted-foreground text-sm">Orders</p>
+          <p className="text-xl font-semibold">{summary?.totalOrders ?? "—"}</p>
+        </Card>
+        <Card className="p-4 text-center">
+          <p className="text-muted-foreground text-sm">Units Sold</p>
+          <p className="text-xl font-semibold">
+            {summary?.totalUnitsSold ?? "—"}
+          </p>
+        </Card>
+        <Card className="p-4 text-center">
+          <p className="text-muted-foreground text-sm">Revenue</p>
+          <p className="text-xl font-semibold">
+            {formatGBP(summary?.totalRevenue ?? 0)}
+          </p>
+        </Card>
+      </div>
+
+      {/* ✅ Product Section */}
+      <div>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+          <h2 className="text-lg font-bold">Your Products</h2>
+          <Button onClick={() => navigate("/brand/products")}>
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Manage Products
+          </Button>
+        </div>
+
+        {products.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {products.map((product) => (
+              <Card key={product._id} className="p-3 space-y-2">
+                <img
+                  src={product.image || "/placeholder-product.jpg"}
+                  alt={product.title}
+                  className="w-full h-40 object-cover rounded-md"
+                />
+                <p className="font-semibold">{product.title}</p>
+                <p className="text-muted-foreground text-sm">
+                  {formatGBP(product.price)}
+                </p>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground">No products uploaded yet.</p>
+        )}
+      </div>
+
+      {/* ✅ Reviews Section */}
+      <div className="bg-white p-5 border rounded-xl shadow-sm">
+        <h2 className="text-lg font-bold mb-4">Customer Reviews</h2>
+        {isLoading ? (
+          <Skeleton className="h-24 w-full rounded-md" />
+        ) : reviews.length === 0 ? (
+          <p className="text-muted-foreground">
+            No reviews yet for your brand.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {reviews.map((rev) => (
+              <div key={rev._id} className="p-3 border rounded-md bg-gray-50">
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-yellow-500" />
+                    <span className="text-sm font-medium">
+                      {rev.reviewValue} stars
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(rev.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="text-sm">{rev.reviewMessage}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  – {rev.userName}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

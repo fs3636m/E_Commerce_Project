@@ -140,14 +140,17 @@ function BrandProducts() {
 
       {/* Product Form Sheet */}
       <Sheet open={openDialog} onOpenChange={setOpenDialog}>
-        <SheetContent side="right" className="w-full sm:w-[600px]">
+        <SheetContent
+          side="right"
+          className="w-full sm:w-[600px] h-screen overflow-y-auto px-4 pt-4"
+        >
           <SheetHeader className="mb-6">
             <SheetTitle className="text-2xl">
               {currentEditedId ? "Edit Product" : "Add New Product"}
             </SheetTitle>
           </SheetHeader>
 
-          <div className="space-y-6">
+          <div className="flex flex-col gap-6 pb-20">
             <ProductImageUpload
               onUpload={(url) => {
                 setFormData((prev) => ({ ...prev, image: url }));
