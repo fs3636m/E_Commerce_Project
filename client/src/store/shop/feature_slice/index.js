@@ -6,7 +6,7 @@ export const getHomepageBrands = createAsyncThunk(
   "homepage/getHomepageBrands",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/brand/homepage`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/shop/brands/featured`);
       return response.data.brands;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch brands");
@@ -18,8 +18,8 @@ export const getHomepageProducts = createAsyncThunk(
   "homepage/getHomepageProducts",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/product/homepage`);
-      return response.data.products;
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/shop/products/featured`);
+      return response.data.products; // ✅ fix this line
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch products");
     }

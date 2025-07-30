@@ -4,8 +4,7 @@ function BrandProductTileWrapper({ product }) {
   return (
     <ShoppingProductTile
       product={product}
-      handleAddtoCart={() => {}} // disable add to cart
-      handleGetProductDetails={() => {}} // disable details
+      disableActions={true} // ✅ Disable add-to-cart & click
     />
   );
 }

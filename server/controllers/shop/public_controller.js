@@ -1,30 +1,39 @@
 const Brand = require("../../models/brand");
 const Product = require("../../models/products");
 
-// controller/common_controller.js
 
 const getFeaturedBrands = async (req, res) => {
   try {
-    const brands = await Brand.find()
-      .limit(4)
-      .select("name profilePicture rating");
+    const brands = await Brand.aggregate([
+      { $sample: { size: 4 } }, // randomly pick 4 brands
+      { $project: { name: 1, profilePicture: 1, rating: 1 } },
+    ]);
 
     res.status(200).json({ success: true, brands });
   } catch (err) {
-    console.error("Error fetching featured brands:", err.message, err.stack);
+    console.error("Error fetching featured brands:", err);
     res.status(500).json({ success: false, message: "Error fetching brands" });
   }
 };
 
 const getFeaturedProducts = async (req, res) => {
   try {
-    const products = await Product.find()
-      .limit(4)
-      .select("title image price averageReview");
+    const products = await Product.aggregate([
+      { $match: { totalStock: { $gt: 0 } } },
+      { $sample: { size: 6 } },
+      {
+        $project: {
+          title: 1,
+          image: 1,
+          price: 1,
+          averageReview: 1,
+        },
+      },
+    ]);
 
-    res.status(200).json({ success: true, data: products });
+    res.status(200).json({ success: true, products });
   } catch (err) {
-    console.error("Error fetching featured products:", err.message, err.stack);
+    console.error("Error fetching featured products:", err);
     res.status(500).json({ success: false, message: "Error fetching products" });
   }
 };
@@ -33,5 +42,6 @@ module.exports = {
   getFeaturedBrands,
   getFeaturedProducts,
 };
+
 
 
