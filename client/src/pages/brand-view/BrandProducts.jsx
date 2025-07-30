@@ -25,7 +25,6 @@ const initialFormData = {
   description: "",
   price: "",
   category: "",
-  brand: "",
   totalStock: "",
   salesPrice: "",
   image: "",
@@ -34,6 +33,7 @@ const initialFormData = {
 function BrandProducts() {
   const dispatch = useDispatch();
   const { products, loading } = useSelector((state) => state.brandProducts);
+  const { userBrand } = useSelector((state) => state.brand); // 🟢 your logged-in brand
   const [formData, setFormData] = useState(initialFormData);
   const [currentEditedId, setCurrentEditedId] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -44,7 +44,11 @@ function BrandProducts() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const payload = formData;
+
+    const payload = {
+      ...formData,
+      brand: userBrand?._id, // 🟢 inject brand automatically
+    };
 
     const action = currentEditedId
       ? editBrandProduct({ id: currentEditedId, formData: payload })
@@ -78,6 +82,11 @@ function BrandProducts() {
     const requiredFields = ["title", "description", "price", "category", "image"];
     return requiredFields.every((field) => !!formData[field]);
   };
+
+  // 🟢 Filter out the brand field from the form
+  const filteredFormControls = addProductFormElements.filter(
+    (field) => field.name !== "brand"
+  );
 
   return (
     <Fragment>
@@ -127,10 +136,7 @@ function BrandProducts() {
               <p className="text-muted-foreground">
                 Get started by adding your first product
               </p>
-              <Button
-                onClick={() => setOpenDialog(true)}
-                className="mt-4"
-              >
+              <Button onClick={() => setOpenDialog(true)} className="mt-4">
                 Add Product
               </Button>
             </div>
@@ -152,12 +158,12 @@ function BrandProducts() {
 
           <div className="flex flex-col gap-6 pb-20">
             <ProductImageUpload
-              onUpload={(url) => {
-                setFormData((prev) => ({ ...prev, image: url }));
-              }}
-              onRemove={() => {
-                setFormData((prev) => ({ ...prev, image: "" }));
-              }}
+              onUpload={(url) =>
+                setFormData((prev) => ({ ...prev, image: url }))
+              }
+              onRemove={() =>
+                setFormData((prev) => ({ ...prev, image: "" }))
+              }
               image={formData.image}
             />
 
@@ -166,7 +172,7 @@ function BrandProducts() {
               setFormData={setFormData}
               onSubmit={handleSubmit}
               buttonText={currentEditedId ? "Update Product" : "Add Product"}
-              formControls={addProductFormElements}
+              formControls={filteredFormControls}
               isBtnDisabled={!isFormValid()}
             />
           </div>
