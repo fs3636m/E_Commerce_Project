@@ -131,7 +131,7 @@ const HomeLayout = () => {
                 href="mailto:Sheriffdeenolayemi898@gmail.com"
                 className="text-primary underline"
               >
-                Sheriffdeenolayemi898@gmail.com
+                Fs3636m@gre.ac.Uk
               </a>
             </p>
             <Button variant="outline" onClick={() => setShowEmailPopup(false)}>

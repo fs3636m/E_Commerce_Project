@@ -13,6 +13,9 @@ import {
   ShoppingBasket,
   Camera
 } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import AIAssistant from "@/components/AIAssistant";
+
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,6 +49,7 @@ function ShoppingHome() {
     loading: brandLoading,
     error: brandError,
   } = useSelector((state) => state.brand || {});
+
 
   const staticCategories = [
     { id: "men", label: "Men", icon: ShirtIcon },
@@ -208,6 +212,7 @@ function ShoppingHome() {
         setOpen={setOpenDetailsDialog}
         productDetails={productDetails}
       />
+      <AIAssistant />
     </div>
   );
 }
