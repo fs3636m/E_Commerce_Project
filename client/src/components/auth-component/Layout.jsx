@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
 import {
   getHomepageBrands,
   getHomepageProducts,
@@ -12,9 +12,10 @@ import heroBanner from "@/assets/maxresdefault.jpg";
 const HomeLayout = () => {
   const categoryList = ["Footwear", "Perfume", "Watches", "Accessories"];
   const dispatch = useDispatch();
-
+  const navigate = useNavigate();
   const [accountOpen, setAccountOpen] = useState(false);
   const [visibleIndex, setVisibleIndex] = useState(0);
+  const [showEmailPopup, setShowEmailPopup] = useState(false);
 
   const { homepageBrands = [], homepageProducts = [] } = useSelector(
     (state) => state.homepageFeature
@@ -42,6 +43,14 @@ const HomeLayout = () => {
   const toggleAccount = () => {
     setAccountOpen((prev) => !prev);
   };
+  const handleRegisterClick = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" }); // ⬆️ scroll to top
+    navigate("/auth/register"); // 🔓 navigate to trigger modal via <Outlet />
+  };
+  const handleGetStarted = () => {
+  window.scrollTo({ top: 0, behavior: "smooth" }); // Scroll to top
+  navigate("/auth/register"); // Open the modal via Outlet route
+};
 
   return (
     <div className="min-h-screen bg-white">
@@ -61,6 +70,7 @@ const HomeLayout = () => {
         </div>
       </header>
 
+      {/* Hero Banner */}
       <section className="relative w-full h-[400px]">
         <img
           src={heroBanner}
@@ -75,11 +85,12 @@ const HomeLayout = () => {
             Shop from your favorite verified brands. Quality you trust, all in
             one place.
           </p>
-          <Link to="/auth/register">
-            <Button className="mt-6 text-white bg-primary px-6 py-3 text-lg">
-              Get Started
-            </Button>
-          </Link>
+          <div
+            onClick={handleGetStarted}
+            className="mt-6 inline-block rounded-xl bg-primary text-white text-lg px-6 py-3 shadow-lg hover:shadow-2xl transition duration-300 cursor-pointer"
+          >
+            Get Started
+          </div>
         </div>
       </section>
 
@@ -97,7 +108,10 @@ const HomeLayout = () => {
             <h2 className="text-2xl font-bold text-gray-800">Own a Brand?</h2>
             <p className="text-gray-600">
               Get verified and start selling your products today.{" "}
-              <span className="text-primary underline cursor-pointer">
+              <span
+                onClick={() => setShowEmailPopup(true)}
+                className="text-primary underline cursor-pointer"
+              >
                 Contact us to get verified
               </span>
               .
@@ -105,6 +119,27 @@ const HomeLayout = () => {
           </div>
         </div>
       </section>
+
+      {/* Email Popup */}
+      {showEmailPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-[90%] max-w-md text-center">
+            <h3 className="text-xl font-bold mb-2">Contact Us</h3>
+            <p className="text-gray-700 mb-4">
+              Email us at:{" "}
+              <a
+                href="mailto:Sheriffdeenolayemi898@gmail.com"
+                className="text-primary underline"
+              >
+                Sheriffdeenolayemi898@gmail.com
+              </a>
+            </p>
+            <Button variant="outline" onClick={() => setShowEmailPopup(false)}>
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="p-6 max-w-7xl mx-auto space-y-20">
@@ -161,30 +196,31 @@ const HomeLayout = () => {
             Featured Products
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-6">
-  {homepageProducts.map((product) => (
-    <Link key={product._id} to={`/products/${product._id}`}>
-      <Card className="hover:shadow-md transition-shadow h-full">
-        <CardContent className="p-4">
-          <div className="aspect-square mb-4 overflow-hidden rounded">
-            <img
-              src={product.image || "/placeholder-product.svg"}
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
+            {homepageProducts.map((product) => (
+              <Link key={product._id} to={`/products/${product._id}`}>
+                <Card className="hover:shadow-md transition-shadow h-full">
+                  <CardContent className="p-4">
+                    <div className="aspect-square mb-4 overflow-hidden rounded">
+                      <img
+                        src={product.image || "/placeholder-product.svg"}
+                        alt={product.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <h3 className="text-sm font-medium line-clamp-2">
+                      {product.title}
+                    </h3>
+                    <p className="text-md font-semibold mt-2">
+                      ₦{product.price.toLocaleString()}
+                    </p>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
           </div>
-          <h3 className="text-sm font-medium line-clamp-2">{product.title}</h3>
-          <p className="text-md font-semibold mt-2">
-            ${product.price.toLocaleString()}
-          </p>
-        </CardContent>
-      </Card>
-    </Link>
-  ))}
-</div>
-
         </section>
 
-        {/* Testimonials */}
+        {/* Testimonial */}
         <section className="bg-gray-50 p-6 rounded-lg shadow text-center max-w-3xl mx-auto">
           <p className="italic text-lg text-gray-700">
             “The best online shopping experience. Quality brands and fast
@@ -198,11 +234,13 @@ const HomeLayout = () => {
         {/* Final CTA */}
         <section className="text-center">
           <h3 className="text-xl font-bold mb-2">Ready to start shopping?</h3>
-          <Link to="/auth/register">
-            <Button className="text-lg">Create an Account</Button>
-          </Link>
+          <Button className="text-lg" onClick={handleRegisterClick}>
+            Create an Account
+          </Button>
         </section>
       </main>
+
+      {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-8 mt-20">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
           <div>
@@ -248,7 +286,6 @@ const HomeLayout = () => {
           <div>
             <h4 className="font-semibold text-white mb-2">Follow Us</h4>
             <div className="flex gap-4">
-              {/* Use icons if you have them */}
               <a href="#" className="hover:text-white">
                 Facebook
               </a>
