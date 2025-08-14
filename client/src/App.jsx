@@ -39,7 +39,7 @@ const BrandProducts = lazy(() => import("./pages/brand-view/BrandProducts"));
 const BrandForm = lazy(() => import("./pages/brand-view/BrandForm"));
 const BrandProfilePage = lazy(() => import("./pages/brand-view/BrandProfilePage"));
 const BrandOrdersView = lazy(() => import("./pages/brand-view/BrandOrdersView"));
-
+const AdminBrandSalesReport = lazy(() => import("./components/admin-view/BrandSalesReport"));
 // Public Brand Pages
 const BrandListingPage = lazy(() => import("./pages/shopping-view/BrandListingPage"));
 const BrandPublicProfile = lazy(() => import("./pages/brand-view/BrandPublicProfile"));
@@ -108,6 +108,7 @@ function App() {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="features" element={<AdminFeatures />} />
             <Route path="brands" element={<AdminBrands />} />
+            <Route path="reports/brands" element={<AdminBrandSalesReport />} />
           </Route>
 
           {/* 🔐 Shopping Routes */}

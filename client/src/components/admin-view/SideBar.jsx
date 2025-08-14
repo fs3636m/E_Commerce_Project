@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   ShoppingBasket,
   Slack,
+  BarChart3
 } from "lucide-react";
 import { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
@@ -33,6 +34,12 @@ const adminSidebarMenuItems = [
     label: "Orders",
     path: "/admin/orders",
     icon: <BadgeCheck />,
+  },
+   {
+    id: "reports-brands",
+    label: "Brand Sales Report",
+    path: "/admin/reports/brands",
+    icon: <BarChart3 />,
   },
 ];
 

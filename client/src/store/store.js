@@ -2,6 +2,8 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./auth-slice";
 import adminProductsSlice from "./admin/products_slice";
 import adminOrderReducer from "./admin/order_slice";
+import adminBrandReducer from './admin/admin_brand_slice';
+import adminReportsReducer from "./admin/brandSales_slice";
 
 import shopOrderSlice from "./shop/order_slice";
 import shopProductsSlice from "./shop/products_slice";
@@ -15,7 +17,8 @@ import brandOrderReducer from "./brand/order_slice";
 import brandSummaryReducer from "./brand/summary_slice";
 import brandReducer from "./shop/brand_slice";
 import homepageFeatureReducer from "./shop/feature_slice";
-import adminBrandReducer from './admin/admin_brand_slice';
+
+
 
 
 const store = configureStore({
@@ -24,7 +27,8 @@ const store = configureStore({
 
     adminOrder: adminOrderReducer,
     adminProducts: adminProductsSlice,
-    
+    adminBrands: adminBrandReducer,
+    adminReports: adminReportsReducer,
 
     shopProducts: shopProductsSlice,
     shopCart: shopCartSlice,
@@ -38,7 +42,7 @@ const store = configureStore({
     brand: brandReducer,
     brandSummary: brandSummaryReducer,
     homepageFeature: homepageFeatureReducer,
-    adminBrands: adminBrandReducer,
+    
   },
 });
 

@@ -59,7 +59,7 @@ app.use("/api/admin/users", require("./routes/admin/user_routes"));
 app.use("/api/admin/products", require("./routes/admin/products_routes"));
 app.use("/api/admin/orders", require("./routes/admin/order_routes"));
 app.use("/api/admin", require("./routes/admin/brand_admin_routes"));
-
+app.use("/api/admin", require("./routes/admin/reports_routes"));
 
 // 🏷️ BRAND Routes
 app.use("/api/shop", require("./routes/shop/brand_review_routes"));

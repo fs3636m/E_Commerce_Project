@@ -1,10 +1,6 @@
+// src/components/shopping-view/Header.jsx
 import { HousePlug, LogOut, Menu, ShoppingCart, UserCog } from "lucide-react";
-import {
-  Link,
-  useLocation,
-  useNavigate,
-  useSearchParams,
-} from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
 import { Button } from "../ui/button";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,14 +13,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { logoutUser, resetTokenAndCredentials } from "@/store/auth-slice";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { resetTokenAndCredentials } from "@/store/auth-slice";
 import UserCartWrapper from "./cart-wrapper";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchCartItems } from "@/store/shop/cart-slice";
 import { Label } from "../ui/label";
 
-// Menu Items component
+// Menu Items
 function MenuItems() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,7 +29,6 @@ function MenuItems() {
   function handleNavigate(getCurrentMenuItem) {
     sessionStorage.removeItem("filters");
 
-    // Special handling for /brands
     if (getCurrentMenuItem.id === "brands") {
       navigate("/brands");
       return;
@@ -43,17 +38,13 @@ function MenuItems() {
       getCurrentMenuItem.id !== "home" &&
       getCurrentMenuItem.id !== "products" &&
       getCurrentMenuItem.id !== "search"
-        ? {
-            category: [getCurrentMenuItem.id],
-          }
+        ? { category: [getCurrentMenuItem.id] }
         : null;
 
     sessionStorage.setItem("filters", JSON.stringify(currentFilter));
 
     if (location.pathname.includes("listing") && currentFilter !== null) {
-      setSearchParams(
-        new URLSearchParams(`?category=${getCurrentMenuItem.id}`)
-      );
+      setSearchParams(new URLSearchParams(`?category=${getCurrentMenuItem.id}`));
     } else {
       navigate(getCurrentMenuItem.path);
     }
@@ -74,10 +65,10 @@ function MenuItems() {
   );
 }
 
-
+// Right content
 function HeaderRightContent() {
   const { user } = useSelector((state) => state.auth);
-  const { cartItems } = useSelector((state) => state.shopCart);
+  const cartItems = useSelector((state) => state.shopCart?.cartItems ?? []); // ARRAY
   const [openCartSheet, setOpenCartSheet] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -89,34 +80,34 @@ function HeaderRightContent() {
   }
 
   useEffect(() => {
-    dispatch(fetchCartItems(user?.id));
-  }, [dispatch]);
+    const uid = user?._id ?? user?.id;
+    if (uid) dispatch(fetchCartItems(uid));
+  }, [dispatch, user?._id, user?.id]);
 
-  console.log(cartItems, "cartItems");
+  const cartCount = useMemo(
+    () => (Array.isArray(cartItems) ? cartItems.reduce((n, it) => n + Number(it?.quantity ?? 0), 0) : 0),
+    [cartItems]
+  );
 
   return (
     <div className="flex lg:items-center lg:flex-row flex-col gap-4">
-      <Sheet open={openCartSheet} onOpenChange={() => setOpenCartSheet(false)}>
-        <Button
-          onClick={() => setOpenCartSheet(true)}
-          variant="outline"
-          size="icon"
-          className="relative"
-        >
-          <ShoppingCart className="w-6 h-6" />
-          <span className="absolute top-[-5px] right-[2px] font-bold text-sm">
-            {cartItems?.items?.length || 0}
-          </span>
-          <span className="sr-only">User cart</span>
-        </Button>
-        <UserCartWrapper
-          setOpenCartSheet={setOpenCartSheet}
-          cartItems={
-            cartItems && cartItems.items && cartItems.items.length > 0
-              ? cartItems.items
-              : []
-          }
-        />
+      <Sheet open={openCartSheet} onOpenChange={(open) => setOpenCartSheet(open)}>
+        <SheetTrigger asChild>
+          <Button variant="outline" size="icon" className="relative">
+            <ShoppingCart className="w-6 h-6" />
+            <span className="absolute -top-1 -right-1 font-bold text-xs bg-primary text-primary-foreground rounded-full min-w-5 h-5 px-1 flex items-center justify-center">
+              {cartCount}
+            </span>
+            <span className="sr-only">User cart</span>
+          </Button>
+        </SheetTrigger>
+
+        <SheetContent side="right" className="p-0 w-[380px] sm:w-[420px]">
+          <UserCartWrapper
+            setOpenCartSheet={setOpenCartSheet}
+            cartItems={Array.isArray(cartItems) ? cartItems : []}
+          />
+        </SheetContent>
       </Sheet>
 
       <DropdownMenu>
@@ -134,7 +125,6 @@ function HeaderRightContent() {
             <UserCog className="mr-2 h-4 w-4" />
             Account
           </DropdownMenuItem>
-          {/* ✅ Brand Dashboard Link */}
           {user?.role === "brand" && (
             <DropdownMenuItem onClick={() => navigate("/brand/dashboard")}>
               <HousePlug className="mr-2 h-4 w-4" />
@@ -153,8 +143,6 @@ function HeaderRightContent() {
 }
 
 function ShoppingHeader() {
-  const { isAuthenticated } = useSelector((state) => state.auth);
-
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
@@ -162,6 +150,7 @@ function ShoppingHeader() {
           <HousePlug className="h-6 w-6" />
           <span className="font-bold">E-Commerce</span>
         </Link>
+
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="lg:hidden">
@@ -174,6 +163,7 @@ function ShoppingHeader() {
             <HeaderRightContent />
           </SheetContent>
         </Sheet>
+
         <div className="hidden lg:block">
           <MenuItems />
         </div>
