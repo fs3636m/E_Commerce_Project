@@ -7,6 +7,9 @@ const initialState = {
   error: null,
 };
 
+const getToken = () =>
+  sessionStorage.getItem("token") || localStorage.getItem("token");
+
 // ---------------------------
 // 🛍️ Product Reviews
 // ---------------------------
@@ -15,13 +18,20 @@ export const addReview = createAsyncThunk(
   "review/addProduct",
   async (formData, { rejectWithValue }) => {
     try {
+      const token = getToken();
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/shop/review/add`,
-        formData
+        formData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
       );
       return res.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to add review");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to add review"
+      );
     }
   }
 );
@@ -30,12 +40,19 @@ export const getReviews = createAsyncThunk(
   "review/getProduct",
   async (productId, { rejectWithValue }) => {
     try {
+      const token = getToken();
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/shop/review/${productId}`
+        `${import.meta.env.VITE_API_URL}/api/shop/review/${productId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
       );
       return res.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to load reviews");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to load reviews"
+      );
     }
   }
 );
@@ -48,13 +65,20 @@ export const addBrandReview = createAsyncThunk(
   "review/addBrand",
   async ({ brandId, reviewMessage, reviewValue }, { rejectWithValue }) => {
     try {
+      const token = getToken();
       const res = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/shop/review/brand/${brandId}`,
-        { reviewMessage, reviewValue }
+        { reviewMessage, reviewValue },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
       );
       return res.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to add brand review");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to add brand review"
+      );
     }
   }
 );
@@ -63,12 +87,19 @@ export const getBrandReviews = createAsyncThunk(
   "review/getBrand",
   async (brandId, { rejectWithValue }) => {
     try {
+      const token = getToken();
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/shop/review/brand/${brandId}`
+        `${import.meta.env.VITE_API_URL}/api/shop/review/brand/${brandId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
       );
       return res.data.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to fetch brand reviews");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch brand reviews"
+      );
     }
   }
 );
@@ -81,12 +112,19 @@ export const getMyBrandReviews = createAsyncThunk(
   "review/getMyBrand",
   async (_, { rejectWithValue }) => {
     try {
+      const token = getToken();
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/shop/review/my-reviews`
+        `${import.meta.env.VITE_API_URL}/api/shop/review/my-reviews`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
       );
       return res.data.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to fetch your brand reviews");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to fetch your brand reviews"
+      );
     }
   }
 );
@@ -99,12 +137,19 @@ export const deleteBrandReviewByAdmin = createAsyncThunk(
   "review/deleteByAdmin",
   async (reviewId, { rejectWithValue }) => {
     try {
+      const token = getToken();
       const res = await axios.delete(
-        `${import.meta.env.VITE_API_URL}/api/admin/review/brand/${reviewId}`
+        `${import.meta.env.VITE_API_URL}/api/admin/review/brand/${reviewId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
       );
-      return res.data;
+      return { reviewId, ...res.data };
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to delete review");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to delete review"
+      );
     }
   }
 );
@@ -126,12 +171,12 @@ const reviewSlice = createSlice({
       })
       .addCase(getReviews.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.reviews = action.payload.data;
+        state.reviews = action.payload?.data || [];
       })
       .addCase(getReviews.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload;
         state.reviews = [];
+        state.error = action.payload;
       })
 
       // 🔄 Add Product Review
@@ -153,7 +198,7 @@ const reviewSlice = createSlice({
       })
       .addCase(getBrandReviews.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.reviews = action.payload;
+        state.reviews = action.payload || [];
       })
       .addCase(getBrandReviews.rejected, (state, action) => {
         state.isLoading = false;
@@ -178,7 +223,7 @@ const reviewSlice = createSlice({
       })
       .addCase(getMyBrandReviews.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.reviews = action.payload;
+        state.reviews = action.payload || [];
       })
       .addCase(getMyBrandReviews.rejected, (state, action) => {
         state.isLoading = false;
@@ -188,7 +233,9 @@ const reviewSlice = createSlice({
 
       // 🔄 Admin Delete
       .addCase(deleteBrandReviewByAdmin.fulfilled, (state, action) => {
-        state.reviews = state.reviews.filter((r) => r._id !== action.meta.arg);
+        state.reviews = state.reviews.filter(
+          (r) => r._id !== action.payload.reviewId
+        );
       });
   },
 });

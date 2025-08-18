@@ -1,13 +1,13 @@
 // controllers/shop/order_controller.js
-// Adjusted to match YOUR setup (uses helpers/paypal v1-style), with safe totals + stock updates.
+// PayPal v1-style flow with safe totals, stock updates, and RELIABLE cart clear.
 
 const paypal = require("../../helpers/paypal"); // your existing PayPal helper (v1 SDK)
 const mongoose = require("mongoose");
-const Order = require("../../models/Order");
+const Order = require("../../models/Order");         // keep your original casing/path
 const Cart = require("../../models/cart");
 const Product = require("../../models/products");
 
-// --- tiny helpers ---
+// ---------------- tiny helpers ----------------
 const n = (v, d = 0) => {
   const x = Number(v);
   return Number.isFinite(x) ? x : d;
@@ -15,10 +15,10 @@ const n = (v, d = 0) => {
 const round2 = (v) => Math.round(n(v, 0) * 100) / 100;
 const money2 = (v) => round2(v).toFixed(2);
 
-// Compute an authoritative total from the cart items you saved
+// Compute an authoritative total from the cart items you saved on the order
 function computeOrderTotal(cartItems = []) {
   return (cartItems || []).reduce((sum, it) => {
-    // your Order model stores price as String; coerce
+    // your Order model stores price as String; coerce safely
     const unit = n(it?.salePrice) > 0 ? n(it?.salePrice) : n(it?.price);
     return sum + unit * n(it?.quantity, 0);
   }, 0);
@@ -26,7 +26,8 @@ function computeOrderTotal(cartItems = []) {
 
 // ------------------------------------------------------------------
 // POST /api/shop/order/create
-// (Keeps your current PayPal v1 flow, but computes totals safely)
+// Creates PayPal payment and saves a pending order.
+// Returns { approvalURL, orderId }
 const createOrder = async (req, res) => {
   try {
     const {
@@ -36,16 +37,17 @@ const createOrder = async (req, res) => {
       orderStatus = "pending",
       paymentMethod = "paypal",
       paymentStatus = "unpaid",
-      cartId = "",
+      cartId, // may be undefined from client; we'll try to resolve it server-side
     } = req.body || {};
 
     if (!userId || !Array.isArray(cartItems) || cartItems.length === 0) {
       return res.status(400).json({ success: false, message: "userId and cartItems are required" });
     }
 
+    // authoritative server total
     const serverTotal = round2(computeOrderTotal(cartItems));
 
-    // Build PayPal payment JSON (v1 style) using SAFE values
+    // Build PayPal v1 payment JSON using SAFE values
     const create_payment_json = {
       intent: "sale",
       payer: { payment_method: "paypal" },
@@ -58,20 +60,27 @@ const createOrder = async (req, res) => {
           item_list: {
             items: cartItems.map((item) => ({
               name: item.title,
-              sku: item.productId,
-              price: money2(n(item.price)), // coerce string -> number, then to 2dp
+              sku: item.productId,                 // keep your SKU mapping
+              price: money2(n(item.price)),        // coerce to number, 2dp
               currency: "USD",
               quantity: n(item.quantity, 0),
             })),
           },
           amount: {
             currency: "USD",
-            total: money2(serverTotal), // authoritative server total
+            total: money2(serverTotal),
           },
           description: "description",
         },
       ],
     };
+
+    // Try to resolve cartId if client didn't pass it
+    let resolvedCartId = cartId || null;
+    if (!resolvedCartId) {
+      const userCart = await Cart.findOne({ userId }).select("_id").lean();
+      resolvedCartId = userCart?._id || null;
+    }
 
     paypal.payment.create(create_payment_json, async (error, paymentInfo) => {
       if (error) {
@@ -84,16 +93,16 @@ const createOrder = async (req, res) => {
 
       const newlyCreatedOrder = new Order({
         userId,
-        cartId,
+        cartId: resolvedCartId,     // save it if found; ok if null
         cartItems,
         addressInfo,
-        orderStatus,           // "pending"
-        paymentMethod,         // "paypal"
-        paymentStatus,         // "unpaid"
+        orderStatus,                // "pending"
+        paymentMethod,              // "paypal"
+        paymentStatus,              // "unpaid"
         totalAmount: serverTotal,
         orderDate: new Date(),
         orderUpdateDate: new Date(),
-        paymentId: "",         // will be set after capture
+        paymentId: "",              // set after capture
         payerId: "",
       });
 
@@ -120,7 +129,7 @@ const createOrder = async (req, res) => {
 // ------------------------------------------------------------------
 // POST /api/shop/order/capture
 // BODY: { orderId, paymentId, payerId }
-// Simple + robust: coerce numbers and CLAMP stock so it never goes < 0
+// Verifies+marks paid, updates stock, and ALWAYS clears the cart for that user.
 const capturePayment = async (req, res) => {
   try {
     const { orderId, paymentId, payerId } = req.body || {};
@@ -133,35 +142,36 @@ const capturePayment = async (req, res) => {
       return res.status(404).json({ success: false, message: "Order not found!" });
     }
 
-    // Idempotent: if already paid, don't deduct stock again
+    // Idempotent: if already paid/confirmed, don't double charge or double-deduct
     if (order.orderStatus === "paid" || order.paymentStatus === "paid" || order.orderStatus === "confirmed") {
+      // ALSO make sure the cart is empty for this user (idempotent)
+      await Cart.updateOne({ userId: order.userId }, { $set: { items: [] } }).catch(() => {});
       return res.status(200).json({
         success: true,
         message: "Order already paid",
       });
     }
 
-    // (If you want, verify the PayPal payment here using your helper.)
-    // Since your existing code doesn’t verify, we proceed to mark as paid.
+    // (Optional) Verify PayPal here with your helper if you want strict checks.
 
-    // Compute the final total from saved items (prevents NaN)
+    // Recompute total from saved items (prevents NaN)
     const finalTotal = round2(computeOrderTotal(order.cartItems));
 
+    // Mark order paid/confirmed
     order.paymentStatus = "paid";
     order.paymentId = paymentId || order.paymentId || "";
     order.payerId = payerId || order.payerId || "";
-    order.orderStatus = "confirmed"; // kept your original status
+    order.orderStatus = "confirmed";
     order.totalAmount = finalTotal;
     order.orderUpdateDate = new Date();
 
-    // ---- Safe stock updates (the simple fallback we used) ----
+    // ---- Safe stock updates ----
     for (const item of order.cartItems || []) {
       const prodId = item.productId;
       if (!prodId || !mongoose.Types.ObjectId.isValid(prodId)) continue;
 
       const product = await Product.findById(prodId);
       if (!product) {
-        // don’t use product.title when product is null
         return res.status(404).json({
           success: false,
           message: `Product not found for id ${prodId}`,
@@ -171,10 +181,7 @@ const capturePayment = async (req, res) => {
       const current = n(product.totalStock, 0);
       const qty = n(item.quantity, 0);
 
-      // clamp to >= 0 to satisfy min:0 validators and avoid negative stock crash
       product.totalStock = Math.max(0, current - qty);
-
-      // If your Product has "sold", bump it safely (ignored if not present)
       if (typeof product.sold === "number") {
         product.sold = Math.max(0, n(product.sold, 0) + qty);
       }
@@ -182,10 +189,15 @@ const capturePayment = async (req, res) => {
       await product.save();
     }
 
-    // Clear cart if present
+    // ---------- THE IMPORTANT PART ----------
+    // Robust cart clear: ALWAYS clear by userId (works even if cartId wasn't saved)
+    await Cart.updateOne({ userId: order.userId }, { $set: { items: [] } }).catch(() => {});
+
+    // (Optional) If cartId exists, also nuke the doc (best-effort)
     if (order.cartId && mongoose.Types.ObjectId.isValid(order.cartId)) {
       await Cart.findByIdAndDelete(order.cartId).catch(() => {});
     }
+    // ---------------------------------------
 
     await order.save();
 
@@ -212,18 +224,10 @@ const getAllOrdersByUser = async (req, res) => {
     }
 
     const orders = await Order.find({ userId }).sort({ createdAt: -1 });
-
-    // Return empty list instead of 404 — easier for UI
-    return res.status(200).json({
-      success: true,
-      data: orders,
-    });
+    return res.status(200).json({ success: true, data: orders });
   } catch (e) {
     console.log(e);
-    return res.status(500).json({
-      success: false,
-      message: "Some error occurred!",
-    });
+    return res.status(500).json({ success: false, message: "Some error occurred!" });
   }
 };
 
@@ -232,29 +236,19 @@ const getAllOrdersByUser = async (req, res) => {
 const getOrderDetails = async (req, res) => {
   try {
     const { id } = req.params;
-
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ success: false, message: "Invalid order id" });
     }
 
     const order = await Order.findById(id);
     if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found!",
-      });
+      return res.status(404).json({ success: false, message: "Order not found!" });
     }
 
-    return res.status(200).json({
-      success: true,
-      data: order,
-    });
+    return res.status(200).json({ success: true, data: order });
   } catch (e) {
     console.log(e);
-    return res.status(500).json({
-      success: false,
-      message: "Some error occurred!",
-    });
+    return res.status(500).json({ success: false, message: "Some error occurred!" });
   }
 };
 

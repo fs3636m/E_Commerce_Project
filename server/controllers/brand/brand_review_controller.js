@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 const BrandReview = require("../../models/BrandReview");
 const Brand = require("../../models/brand");
 
@@ -57,38 +59,22 @@ const addBrandReview = async (req, res) => {
 
 const getBrandReviews = async (req, res) => {
   try {
-    let brandId = req.params.id || req.user?.brandId;
-
-    if (!brandId) {
-      return res.status(400).json({
-        success: false,
-        message: "Brand ID is required",
-      });
-    }
-
-    // Ensure it's a valid ObjectId if necessary
+    const brandId = req.params.id;
+    if (!brandId) return res.status(400).json({ success:false, message:"Brand ID is required" });
     if (!mongoose.Types.ObjectId.isValid(brandId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid Brand ID",
-      });
+      return res.status(400).json({ success:false, message:"Invalid Brand ID" });
     }
 
-    const reviews = await BrandReview.find({ brand: brandId })
+    // ✅ make sure the field name matches your model and create() call
+    const reviews = await BrandReview.find({ brandId })
       .sort({ createdAt: -1 })
-      .populate("user", "username") // optional, if user ref exists
+      .populate("userId", "username")
       .lean();
 
-    res.status(200).json({
-      success: true,
-      data: reviews,
-    });
-  } catch (error) {
-    console.error("❌ Error getting brand reviews:", error.message);
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
+    return res.status(200).json({ success: true, data: reviews });
+  } catch (e) {
+    console.error("getBrandReviews error:", e);
+    return res.status(500).json({ success:false, message:"Server error" });
   }
 };
 
