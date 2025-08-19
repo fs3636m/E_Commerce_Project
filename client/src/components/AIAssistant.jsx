@@ -95,14 +95,14 @@ const AIAssistant = () => {
             {loading ? "Thinking..." : "Send"}
           </button>
 
-          {err && (
+          {err && ( 
             <div className="text-red-600 text-xs mt-2 break-words">{err}</div>
           )}
 
-          {/* Debug: confirm we're hitting your server, not OpenAI
+          {/* Debug: confirm we're hitting your server, not OpenAI */}
           <div className="text-[10px] text-gray-500 mt-2">
-            API: {api.defaults.baseURL}
-          </div> */}
+            {/* API: {api.defaults.baseURL} */}
+          </div>
         </div>
       )}
     </>
