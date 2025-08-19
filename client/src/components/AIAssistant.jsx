@@ -1,37 +1,55 @@
+// src/components/AIAssistant.jsx
+// FIXED: stop calling api.openai.com from the browser.
+// Calls YOUR backend Option-B endpoint: POST {VITE_API_URL}/api/ai/ask
+
 import { useState } from "react";
 import axios from "axios";
+
+const base =
+  (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, "");
+const api = axios.create({
+  baseURL: `${base}/api`,
+  withCredentials: false,
+});
 
 const AIAssistant = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
 
   const handleSend = async () => {
-    if (!userInput.trim()) return;
+    const text = userInput.trim();
+    if (!text || loading) return;
 
-    const newMessages = [...messages, { role: "user", content: userInput }];
+    const newMessages = [...messages, { role: "user", content: text }];
     setMessages(newMessages);
     setUserInput("");
+    setErr("");
+    setLoading(true);
 
     try {
-      const res = await axios.post(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          model: "gpt-3.5-turbo",
-          messages: newMessages,
-        },
-        {
-          headers: {
-            Authorization: `Bearer YOUR_OPENAI_API_KEY`, // 🔁 Replace with your actual key
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      // Option B: your backend accepts a single `message` string
+      const res = await api.post("/ai/ask", { message: text });
+      const reply =
+        res?.data?.message?.content ??
+        "Sorry, I couldn't generate a response.";
 
-      const reply = res.data.choices[0].message;
-      setMessages([...newMessages, reply]);
-    } catch (err) {
-      console.error("AI error", err);
+      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    } catch (e) {
+      const status = e?.response?.status;
+      const detail =
+        e?.response?.data?.message ||
+        e?.response?.data?.error ||
+        e?.message ||
+        "Unknown error";
+      setErr(`AI error${status ? ` (${status})` : ""}: ${detail}`);
+      console.error("AI error", e?.response?.data || e);
+      // Roll back user message if you want:
+      // setMessages(messages);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,9 +70,7 @@ const AIAssistant = () => {
             {messages.map((msg, i) => (
               <div
                 key={i}
-                className={`${
-                  msg.role === "user" ? "text-right" : "text-left"
-                }`}
+                className={`${msg.role === "user" ? "text-right" : "text-left"}`}
               >
                 <strong>{msg.role === "user" ? "You" : "AI"}:</strong>{" "}
                 {msg.content}
@@ -67,14 +83,26 @@ const AIAssistant = () => {
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             placeholder="Ask me anything..."
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
+            disabled={loading}
           />
 
           <button
             onClick={handleSend}
-            className="bg-primary text-white py-2 rounded hover:opacity-90 text-sm"
+            disabled={loading}
+            className="bg-primary text-white py-2 rounded hover:opacity-90 text-sm disabled:opacity-60"
           >
-            Send
+            {loading ? "Thinking..." : "Send"}
           </button>
+
+          {err && (
+            <div className="text-red-600 text-xs mt-2 break-words">{err}</div>
+          )}
+
+          {/* Debug: confirm we're hitting your server, not OpenAI
+          <div className="text-[10px] text-gray-500 mt-2">
+            API: {api.defaults.baseURL}
+          </div> */}
         </div>
       )}
     </>

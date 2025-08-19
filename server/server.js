@@ -7,6 +7,7 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 5100;
 
+
 // ✅ Connect MongoDB
 mongoose
   .connect(process.env.MONGO_URL)
@@ -39,6 +40,9 @@ app.use(cookieParser());
 /* ---------------- ROUTES ------------------ */
 app.use("/api/shop", require("./routes/shop/public_routes"));
 
+// 🤖 AI Routes
+app.use("/api", require("./routes/ai/ai_routes"));
+
 // 🔐 Auth
 const authRouter = require("./routes/auth/auth_route");
 app.use("/api/auth", authRouter);
@@ -66,7 +70,6 @@ app.use("/api/shop", require("./routes/shop/brand_review_routes"));
 app.use("/api/shop/brand", require("./routes/shop/brand_private_routes"));  // brand dashboard, upload, edit
 app.use("/api/shop", require("./routes/shop/brand_public_routes"));         // getAllPublicBrands
 app.use("/api/brands", require("./routes/brand/brand_public_routes"));      // public view /brands/:id + reviews
-
 
 // ✅ Health Check
 app.get("/", (req, res) => {
