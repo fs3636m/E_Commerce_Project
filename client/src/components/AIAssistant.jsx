@@ -1,6 +1,4 @@
-// src/components/AIAssistant.jsx
-// FIXED: stop calling api.openai.com from the browser.
-// Calls YOUR backend Option-B endpoint: POST {VITE_API_URL}/api/ai/ask
+
 
 import { useState } from "react";
 import axios from "axios";
