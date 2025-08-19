@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import axios from "axios";
-import { Button } from "./ui/button";
+
 
 const base =
   (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, "");
@@ -97,12 +97,7 @@ const AIAssistant = () => {
           {err && ( 
             <div className="text-red-600 text-xs mt-2 break-words">{err}</div>
           )}
-          <Button
-            onClick={() => setIsOpen(false)}
-            className="absolute top-2 right-2"
-          >
-            Close
-          </Button>                   
+                            
         </div>
       )}
     </>
