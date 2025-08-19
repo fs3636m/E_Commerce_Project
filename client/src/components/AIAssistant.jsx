@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import axios from "axios";
+import { Button } from "./ui/button";
 
 const base =
   (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, "");
@@ -72,7 +73,7 @@ const AIAssistant = () => {
                 key={i}
                 className={`${msg.role === "user" ? "text-right" : "text-left"}`}
               >
-                <strong>{msg.role === "user" ? "You" : "AI"}:</strong>{" "}
+                <strong>{msg.role === "user" ? "You" : "EyiiDola"}:</strong>{" "}
                 {msg.content}
               </div>
             ))}
@@ -98,11 +99,12 @@ const AIAssistant = () => {
           {err && ( 
             <div className="text-red-600 text-xs mt-2 break-words">{err}</div>
           )}
-
-          {/* Debug: confirm we're hitting your server, not OpenAI */}
-          <div className="text-[10px] text-gray-500 mt-2">
-            {/* API: {api.defaults.baseURL} */}
-          </div>
+          <Button
+            onClick={() => setIsOpen(false)}
+            className="absolute top-2 right-2"
+          >
+            Close
+          </Button>                   
         </div>
       )}
     </>
