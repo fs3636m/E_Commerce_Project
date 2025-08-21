@@ -1,9 +1,10 @@
+// models/brandReview.js
 const mongoose = require("mongoose");
 
 const BrandReviewSchema = new mongoose.Schema(
   {
-    brandId: String,
-    userId: String,
+    brandId: String, // stored as string for now
+    userId: String,  // stored as string for now
     userName: String,
     reviewMessage: String,
     reviewValue: Number,

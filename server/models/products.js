@@ -1,25 +1,42 @@
 const mongoose = require("mongoose");
+
 const ProductSchema = new mongoose.Schema(
   {
     image: String,
-    title: String,
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     description: String,
 
     category: {
-      type: String, // for now, use string categories like 'men', 'kids'
+      type: String, // you can later convert this to a Category model if needed
       required: true,
     },
 
-    // Can be either an ObjectId OR a hardcoded string like "nike"
     brand: {
-      type: mongoose.Schema.Types.Mixed, // allow ObjectId or String
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Brand",
       required: true,
     },
 
-    price: Number,
+    price: {
+      type: Number,
+      required: true,
+    },
     salePrice: Number,
-    totalStock: Number,
-    averageReview: Number,
+    totalStock: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    averageReview: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
   },
   { timestamps: true }
 );

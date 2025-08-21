@@ -116,7 +116,10 @@ const BrandDashboard = () => {
             {/* Review Line (optional) */}
             <div className="flex items-center justify-center md:justify-start gap-2 text-sm mt-2">
               <Star className="w-4 h-4 text-yellow-500" />
-              <span className="text-sm text-black/80">0.0 (0 reviews)</span>
+              <span className="text-sm text-black/80">
+                {brand?.rating?.average?.toFixed(1) ?? "0.0"} (
+                {brand?.rating?.totalRatings ?? 0} reviews)
+              </span>
             </div>
 
             {/* Edit Button */}

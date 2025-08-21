@@ -4,6 +4,7 @@ import axios from "axios";
 const initialState = {
   isLoading: false,
   reviews: [],
+  brand: null, 
   error: null,
 };
 
@@ -114,13 +115,14 @@ export const getMyBrandReviews = createAsyncThunk(
     try {
       const token = getToken();
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/shop/review/my-reviews`,
+        `${import.meta.env.VITE_API_URL}/api/shop/brand/my-brand`,
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: true,
         }
       );
-      return res.data.data;
+      // ✅ Use `reviews` returned from API
+      return res.data.reviews || [];
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Failed to fetch your brand reviews"
@@ -128,6 +130,11 @@ export const getMyBrandReviews = createAsyncThunk(
     }
   }
 );
+
+
+
+
+
 
 // ---------------------------
 // 🛡️ Admin Delete
@@ -224,6 +231,7 @@ const reviewSlice = createSlice({
       .addCase(getMyBrandReviews.fulfilled, (state, action) => {
         state.isLoading = false;
         state.reviews = action.payload || [];
+         state.brand = action.payload.brand || null;
       })
       .addCase(getMyBrandReviews.rejected, (state, action) => {
         state.isLoading = false;

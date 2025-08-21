@@ -51,7 +51,7 @@ const addProduct = async (req, res) => {
       title,
       description,
       category,
-      brand,
+      brand: mongoose.Types.ObjectId(brand),
       price,
       salePrice,
       totalStock,
@@ -76,7 +76,10 @@ const addProduct = async (req, res) => {
 
 const fetchAllProducts = async (req, res) => {
   try {
-    const listOfProducts = await Product.find({}).lean();
+    const listOfProducts = await Product.find({})
+      .populate("brand", "name profilePicture socialLinks") // ✅ fetch only what you need
+      .lean();
+
     res.status(200).json({
       success: true,
       data: listOfProducts,
@@ -116,7 +119,10 @@ const editProduct = async (req, res) => {
     findProduct.title = title || findProduct.title;
     findProduct.description = description || findProduct.description;
     findProduct.category = category || findProduct.category;
-    findProduct.brand = brand || findProduct.brand;
+    if (brand) {
+      findProduct.brand = mongoose.Types.ObjectId(brand);
+    }
+
     findProduct.price = price !== undefined ? price : findProduct.price;
     findProduct.salePrice =
       salePrice === "" ? 0 : salePrice || findProduct.salePrice;
