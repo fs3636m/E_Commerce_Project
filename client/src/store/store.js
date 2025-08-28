@@ -17,6 +17,7 @@ import brandOrderReducer from "./brand/order_slice";
 import brandSummaryReducer from "./brand/summary_slice";
 import brandReducer from "./shop/brand_slice";
 import homepageFeatureReducer from "./shop/feature_slice";
+import brandReportsReducer from "./brand/brandSales_slice";
 
 
 
@@ -42,6 +43,7 @@ const store = configureStore({
     brand: brandReducer,
     brandSummary: brandSummaryReducer,
     homepageFeature: homepageFeatureReducer,
+    brandReports: brandReportsReducer
     
   },
 });

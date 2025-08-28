@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const { imageUploadUtil } = require("../../helpers/cloudinary");
 const Product = require("../../models/products");
 const handleImageUpload = async (req, res) => {

@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Brand = require("../../models/brand");
 
 const getAllBrands = async (req, res) => {

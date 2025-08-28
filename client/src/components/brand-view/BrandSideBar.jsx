@@ -4,6 +4,7 @@ import {
   UploadCloudIcon,
   UserCircle2,
   LogOut,
+  ReceiptPoundSterling,
 } from "lucide-react";
 import SidebarTemplate from "../common/SideBarTemplate";
 import { useNavigate } from "react-router-dom";
@@ -40,6 +41,13 @@ export default function BrandSideBar({ open, setOpen }) {
       label: "Profile",
       path: "/brand/profile",
       icon: <UserCircle2 />,
+
+    },
+    { 
+      id: "sales-report",
+      label: "Sales Report",
+      path: "/brand/sales-report",
+      icon: <ReceiptPoundSterling />,
     },
     {
       id: "logout",
