@@ -211,7 +211,7 @@ const HomeLayout = () => {
                       {product.title}
                     </h3>
                     <p className="text-md font-semibold mt-2">
-                      ₦{product.price.toLocaleString()}
+                      £{product.price.toLocaleString()}
                     </p>
                   </CardContent>
                 </Card>
