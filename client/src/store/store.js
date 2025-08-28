@@ -3,7 +3,7 @@ import authReducer from "./auth-slice";
 import adminProductsSlice from "./admin/products_slice";
 import adminOrderReducer from "./admin/order_slice";
 import adminBrandReducer from './admin/admin_brand_slice';
-import adminReportsReducer from "./admin/brandSales_slice";
+import adminReportsReducer from "./admin/adminBrandReportsSlice";
 
 import shopOrderSlice from "./shop/order_slice";
 import shopProductsSlice from "./shop/products_slice";
@@ -29,7 +29,7 @@ const store = configureStore({
     adminOrder: adminOrderReducer,
     adminProducts: adminProductsSlice,
     adminBrands: adminBrandReducer,
-    adminReports: adminReportsReducer,
+    adminBrandReports: adminReportsReducer,
 
     shopProducts: shopProductsSlice,
     shopCart: shopCartSlice,

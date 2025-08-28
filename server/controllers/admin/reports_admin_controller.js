@@ -5,7 +5,7 @@ const Order = require("../../models/Order");
 
 const TZ = "Europe/London";
 
-const brandSalesReport = async (req, res) => {
+const getAllBrandsSalesReport = async (req, res) => {
   try {
     const period = String(req.query.period || req.query.granularity || "day").toLowerCase();
     const unit =
@@ -199,4 +199,4 @@ const brandSalesReport = async (req, res) => {
   }
 };
 
-module.exports = { brandSalesReport };
+module.exports = { getAllBrandsSalesReport };

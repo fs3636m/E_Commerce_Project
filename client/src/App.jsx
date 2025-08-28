@@ -22,7 +22,7 @@ const AdminProducts = lazy(() => import("./pages/admin-view/Product"));
 const AdminOrders = lazy(() => import("./pages/admin-view/Orders"));
 const AdminFeatures = lazy(() => import("./pages/admin-view/Features"));
 const AdminBrands = lazy(() => import("./components/admin-view/AdminBrands"));
-
+const AdminBrandSalesReport = lazy(() => import("./components/admin-view/AdminBrandSalesReport"));
 // Shopping Pages
 const ShoppingHome = lazy(() => import("./pages/shopping-view/Home"));
 const ShoppingListing = lazy(() => import("./pages/shopping-view/Listing"));
@@ -40,7 +40,7 @@ const BrandForm = lazy(() => import("./pages/brand-view/BrandForm"));
 const BrandProfilePage = lazy(() => import("./pages/brand-view/BrandProfilePage"));
 const BrandOrdersView = lazy(() => import("./pages/brand-view/BrandOrdersView"));
 const BrandSalesReport = lazy(() => import("./components/brand-view/BrandSalesReport"));
-const AdminBrandSalesReport = lazy(() => import("./components/brand-view/BrandSalesReport"));
+
 // Public Brand Pages
 const BrandListingPage = lazy(() => import("./pages/shopping-view/BrandListingPage"));
 const BrandPublicProfile = lazy(() => import("./pages/brand-view/BrandPublicProfile"));

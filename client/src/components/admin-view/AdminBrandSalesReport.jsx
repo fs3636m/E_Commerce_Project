@@ -1,10 +1,8 @@
 // src/components/admin/BrandSalesReport.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchBrandSalesReport,
-  setGranularity,
-} from "@/store/admin/brandSales_slice";
+import { fetchAdminBrandSales, setGranularity } from "@/store/admin/adminBrandReportsSlice";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,21 +52,17 @@ function keyFromBrandName(name) {
 // ---------- component ----------
 export default function BrandSalesReport() {
   const dispatch = useDispatch();
-  const { loading, series, granularity } = useSelector((s) => s.adminReports);
+  const { loading, series, granularity } = useSelector((s) => s.adminBrandReports);
+
 
   const safeSeries = Array.isArray(series) ? series : [];
   const [range, setRange] = useState({ start: "", end: "" });
 
   // fetch on load / controls change
-  useEffect(() => {
-    dispatch(
-      fetchBrandSalesReport({
-        granularity: granularity || "day",
-        start: range.start || undefined,
-        end: range.end || undefined,
-      })
-    );
-  }, [dispatch, granularity, range.start, range.end]);
+ useEffect(() => {
+  dispatch(fetchAdminBrandSales({ granularity, start: range.start, end: range.end }));
+}, [dispatch, granularity, range.start, range.end]);
+
 
   // Transform API -> chart data with strong guards
   const memo = useMemo(() => {
