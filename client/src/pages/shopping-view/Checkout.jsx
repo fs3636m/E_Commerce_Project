@@ -9,7 +9,7 @@ import { createNewOrder } from "@/store/shop/order_slice";
 import { toast } from "sonner";
 
 function ShoppingCheckout() {
-  const cartItems = useSelector((state) => state.shopCart?.cartItems ?? []); // ARRAY
+  const cartItems = useSelector((state) => state.shopCart?.cartItems ?? []); 
   const { user } = useSelector((state) => state.auth);
   const { approvalURL } = useSelector((state) => state.shopOrder);
   const [currentSelectedAddress, setCurrentSelectedAddress] = useState(null);

@@ -36,6 +36,8 @@ function AdminProducts() {
   const [uploadedImageUrl, setUploadedImageUrl] = useState("");
   const [imageLoadingState, setImageLoadingState] = useState(false);
   const [currentEditedId, setCurrentEditedId] = useState(null);
+  const [openCreateProductDialog, setOpenCreateProductDialog] =
+    useState(false);
 
   const { productList } = useSelector((state) => state.adminProducts);
 

@@ -120,7 +120,7 @@ function UserCartItemsContent({ cartItem }) {
 
       <div className="flex flex-col items-end">
         <p className="font-semibold">
-          ${Number.isFinite(lineTotal) ? lineTotal.toFixed(2) : "0.00"}
+          £{Number.isFinite(lineTotal) ? lineTotal.toFixed(2) : "0.00"}
         </p>
         <Trash
           onClick={() => handleCartItemDelete(cartItem)}

@@ -1,4 +1,3 @@
-// components/product/ProductDetailsDialog.jsx
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Dialog, DialogContent } from "../ui/dialog";
@@ -21,8 +20,6 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
   const { user } = useSelector((state) => state.auth);
   const { cartItems } = useSelector((state) => state.shopCart);
   const { reviews = [] } = useSelector((state) => state.shopReview || {});
-
-  // ---------- helpers ----------
 
   const handleDialogClose = useCallback(() => {
     setOpen(false);
@@ -107,12 +104,10 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     });
   }, [dispatch, productDetails?._id, rating, reviewMsg, user?.id, user?.userName]);
 
-  // fetch reviews only when the product id changes
   useEffect(() => {
     if (productDetails?._id) {
       dispatch(getReviews(productDetails._id));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productDetails?._id]);
 
   const averageReview = useMemo(() => {
@@ -121,12 +116,9 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
     return sum / reviews.length;
   }, [reviews]);
 
-  // ---------- UI ----------
-
   return (
     <Dialog open={open} onOpenChange={handleDialogClose}>
       <DialogContent className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:p-12 max-w-[90vw] sm:max-w-[80vw] lg:max-w-[70vw] max-h-screen overflow-y-auto">
-        {/* IMAGE */}
         <div className="relative overflow-hidden rounded-lg">
           <img
             src={productDetails?.image}
@@ -137,7 +129,6 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
           />
         </div>
 
-        {/* DETAILS */}
         <div className="space-y-4">
           <div>
             <h1 className="text-3xl font-extrabold">{productDetails?.title}</h1>
@@ -152,17 +143,16 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
                 productDetails?.salePrice > 0 ? "line-through" : ""
               }`}
             >
-              ${productDetails?.price}
+              £{productDetails?.price}
             </p>
             {productDetails?.salePrice > 0 && (
               <p className="text-2xl font-bold text-muted-foreground">
-                ${productDetails?.salePrice}
+                £{productDetails?.salePrice}
               </p>
             )}
           </div>
 
           <div className="flex items-center gap-2">
-            {/* read-only average */}
             <StarRatingComponent rating={averageReview} />
             <span className="text-muted-foreground">
               ({averageReview.toFixed(2)})
@@ -188,7 +178,6 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
 
           <Separator />
 
-          {/* REVIEWS */}
           <div className="max-h-[300px] overflow-auto">
             <h2 className="text-xl font-bold mb-4">Reviews</h2>
 
@@ -217,11 +206,9 @@ function ProductDetailsDialog({ open, setOpen, productDetails }) {
               )}
             </div>
 
-            {/* ADD REVIEW */}
             <div className="mt-10 flex-col flex gap-2">
               <Label>Write a review</Label>
               <div className="flex gap-1">
-                {/* interactive */}
                 <StarRatingComponent
                   rating={rating}
                   handleRatingChange={handleRatingChange}

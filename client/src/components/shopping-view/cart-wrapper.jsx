@@ -1,12 +1,12 @@
-// src/components/shopping-view/cart-wrapper.jsx
+// src/components/shopping-view/cart-wrapper.jsx 
 import { useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { SheetHeader, SheetTitle } from "../ui/sheet";
 import UserCartItemsContent from "./cart_items_content";
 
-function formatNGN(amount) {
+function formatGBP(amount) {
   const n = Number(amount ?? 0);
-   return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  return n.toLocaleString("en-GB", { style: "currency", currency: "GBP" });
 }
 
 function UserCartWrapper({ cartItems = [], setOpenCartSheet }) {
@@ -50,7 +50,7 @@ function UserCartWrapper({ cartItems = [], setOpenCartSheet }) {
       <div className="border-t p-4 space-y-4 bg-background">
         <div className="flex items-center justify-between">
           <span className="font-bold">Total</span>
-          <span className="font-bold">{formatNGN(totalCartAmount)}</span>
+          <span className="font-bold">{formatGBP(totalCartAmount)}</span>
         </div>
 
         <Button

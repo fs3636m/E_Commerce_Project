@@ -98,8 +98,8 @@ const capturePayment = async (req, res) => {
   try {
     const { paymentId, payerId, orderId } = req.body;
 
-    let order = await Order.findById(orderId);
-
+    // Fetch the order by ID
+    const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({
         success: false,
@@ -107,43 +107,65 @@ const capturePayment = async (req, res) => {
       });
     }
 
+    // Update order payment and status
     order.paymentStatus = "paid";
     order.orderStatus = "confirmed";
     order.paymentId = paymentId;
     order.payerId = payerId;
 
-    // 🛒 Reduce stock for each item
+    // Safely reduce stock for each product
     for (let item of order.cartItems) {
-      let product = await Product.findById(item.productId);
+      const product = await Product.findById(item.productId);
       if (!product) {
         return res.status(404).json({
           success: false,
           message: `Product not found: ${item.productId}`,
         });
       }
-      product.totalStock -= item.quantity;
+
+      // Ensure totalStock is a number and prevent NaN
+      const currentStock = Number(product.totalStock) || 0;
+      const quantitySold = Number(item.quantity) || 0;
+
+      let updatedStock = currentStock - quantitySold;
+      if (updatedStock < 0) updatedStock = 0;
+
+      console.log(
+        "Updating stock for product:",
+        product._id,
+        "Old stock:",
+        currentStock,
+        "Quantity sold:",
+        quantitySold,
+        "New stock:",
+        updatedStock
+      );
+
+      product.totalStock = updatedStock;
       await product.save();
     }
 
-    // 🗑 Clear the cart by userId instead of cartId
+    // Clear the user's cart
     await Cart.findOneAndDelete({ userId: order.userId });
     console.log("🗑 Cleared cart for user:", order.userId);
 
+    // Save the updated order
     await order.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Order confirmed and cart cleared",
       data: order,
     });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({
+    console.error("🔥 capturePayment error:", e);
+    return res.status(500).json({
       success: false,
       message: "Some error occurred!",
     });
   }
 };
+
 
 const getAllOrdersByUser = async (req, res) => {
   try {

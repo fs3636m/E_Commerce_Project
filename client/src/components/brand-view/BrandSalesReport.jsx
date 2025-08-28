@@ -54,9 +54,7 @@ const formatGBP = (amount) =>
 // ---------- component ----------
 export default function BrandSalesReport() {
   const dispatch = useDispatch();
-  const { loading, series, granularity } = useSelector(
-    (s) => s.brandReports
-  );
+  const { loading, series, granularity } = useSelector((s) => s.brandReports);
 
   const safeSeries = Array.isArray(series) ? series : [];
   const [range, setRange] = useState({ start: "", end: "" });
@@ -75,7 +73,7 @@ export default function BrandSalesReport() {
     const points = safeSeries
       .flatMap((s) =>
         (s?.data || []).map((p) => ({
-          date: toDateSafe(p._id), 
+          date: toDateSafe(p._id),
           qty: Number(p?.qty ?? 0),
           revenue: Number(p?.revenue ?? 0),
         }))
@@ -134,18 +132,14 @@ export default function BrandSalesReport() {
             type="date"
             className="border rounded px-2 py-1"
             value={range.start}
-            onChange={(e) =>
-              setRange((r) => ({ ...r, start: e.target.value }))
-            }
+            onChange={(e) => setRange((r) => ({ ...r, start: e.target.value }))}
           />
           <span>to</span>
           <input
             type="date"
             className="border rounded px-2 py-1"
             value={range.end}
-            onChange={(e) =>
-              setRange((r) => ({ ...r, end: e.target.value }))
-            }
+            onChange={(e) => setRange((r) => ({ ...r, end: e.target.value }))}
           />
           <Button
             variant="outline"

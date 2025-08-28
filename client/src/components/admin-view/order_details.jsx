@@ -12,7 +12,6 @@ import {
 } from "@/store/admin/order_slice";
 import { toast } from "sonner";
 
-
 const initialFormData = {
   status: "",
 };
@@ -21,7 +20,6 @@ function AdminOrderDetailsView({ orderDetails }) {
   const [formData, setFormData] = useState(initialFormData);
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
- 
 
   console.log(orderDetails, "orderDetailsorderDetails");
 
@@ -55,7 +53,7 @@ function AdminOrderDetailsView({ orderDetails }) {
           </div>
           <div className="flex mt-2 items-center justify-between">
             <p className="font-medium">Order Price</p>
-            <Label>${orderDetails?.totalAmount}</Label>
+            <Label>£{orderDetails?.totalAmount}</Label>
           </div>
           <div className="flex mt-2 items-center justify-between">
             <p className="font-medium">Payment method</p>
@@ -89,10 +87,10 @@ function AdminOrderDetailsView({ orderDetails }) {
             <ul className="grid gap-3">
               {orderDetails?.cartItems && orderDetails?.cartItems.length > 0
                 ? orderDetails?.cartItems.map((item) => (
-                    <li className="flex items-center justify-between">
+                    <li className="flex items-center justify-between" key={item._id}>
                       <span>Title: {item.title}</span>
                       <span>Quantity: {item.quantity}</span>
-                      <span>Price: ${item.price}</span>
+                      <span>Price: £{item.price}</span>
                     </li>
                   ))
                 : null}

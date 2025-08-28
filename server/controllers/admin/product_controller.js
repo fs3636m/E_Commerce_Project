@@ -48,16 +48,17 @@ const addProduct = async (req, res) => {
     console.log(averageReview, "averageReview");
 
     const newlyCreatedProduct = new Product({
-      image,
-      title,
-      description,
-      category,
-      brand: mongoose.Types.ObjectId(brand),
-      price,
-      salePrice,
-      totalStock,
-      averageReview,
-    });
+  image,
+  title,
+  description,
+  category,
+  brand: mongoose.Types.ObjectId(brand),
+  price: Number(price),
+  salePrice: Number(salePrice) || 0,
+  totalStock: Number(totalStock) || 0,
+  averageReview: Number(averageReview) || 0,
+});
+
 
     await newlyCreatedProduct.save();
     res.status(201).json({
@@ -97,9 +98,8 @@ const fetchAllProducts = async (req, res) => {
 //edit a product
 const editProduct = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.params; // product ID from URL
     const {
-      image,
       title,
       description,
       category,
@@ -108,40 +108,44 @@ const editProduct = async (req, res) => {
       salePrice,
       totalStock,
       averageReview,
+      image,
     } = req.body;
 
-    let findProduct = await Product.findById(id);
-    if (!findProduct)
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-
-    findProduct.title = title || findProduct.title;
-    findProduct.description = description || findProduct.description;
-    findProduct.category = category || findProduct.category;
-    if (brand) {
-      findProduct.brand = mongoose.Types.ObjectId(brand);
+    // Fetch the product by ID
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
     }
 
-    findProduct.price = price !== undefined ? price : findProduct.price;
-    findProduct.salePrice =
-      salePrice === "" ? 0 : salePrice || findProduct.salePrice;
-    findProduct.totalStock = totalStock || findProduct.totalStock;
-    findProduct.image = image || findProduct.image;
-    findProduct.averageReview = averageReview || findProduct.averageReview;
+    // Update fields if provided
+    product.title = title || product.title;
+    product.description = description || product.description;
+    product.category = category || product.category;
 
-    await findProduct.save();
+    if (brand) {
+     
+      product.brand = brand; 
+    }
+
+    product.price = price !== undefined ? Number(price) : product.price;
+    product.salePrice = salePrice !== undefined ? Number(salePrice) : product.salePrice;
+    product.totalStock = totalStock !== undefined ? Number(totalStock) : product.totalStock;
+    product.averageReview = averageReview !== undefined ? Number(averageReview) : product.averageReview;
+    product.image = image || product.image;
+
+    await product.save();
+
+    // Optionally populate brand info in response
+    const updatedProduct = await Product.findById(product._id).populate("brand", "name profilePicture");
+
     res.status(200).json({
       success: true,
-      data: findProduct,
+      message: "Product updated successfully",
+      data: updatedProduct,
     });
-  } catch (e) {
-    console.error("editProduct error:", e.message);
-    res.status(500).json({
-      success: false,
-      message: "Error occurred",
-    });
+  } catch (err) {
+    console.error("editProduct error:", err);
+    res.status(500).json({ success: false, message: "Error occurred" });
   }
 };
 

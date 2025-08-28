@@ -14,11 +14,9 @@ function ShoppingProductTile({
     ? product.brand?.name || "Unknown Brand"
     : brandOptionsMap[product.brand] || ""; 
 
-
   const displayCategory =
     categoryOptionsMap[product.category] || product.category || "Unknown";
 
-  // ✅ Extracted image + badges section
   const imageContent = (
     <div className="relative">
       <img
@@ -30,7 +28,6 @@ function ShoppingProductTile({
         }}
       />
 
-      {/* ✅ Stock Badges */}
       {product.totalStock === 0 && (
         <Badge className="absolute top-2 left-2 bg-red-500 hover:bg-red-600">
           Out Of Stock
@@ -49,7 +46,6 @@ function ShoppingProductTile({
     </div>
   );
 
-  // ✅ Extracted content block
   const cardContent = (
     <CardContent className="p-4 space-y-3">
       <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 truncate">
@@ -67,12 +63,12 @@ function ShoppingProductTile({
             product.salePrice > 0 ? "line-through text-gray-400" : "text-gray-900"
           }`}
         >
-          ${product.price}
+          £{product.price}
         </span>
 
         {product.salePrice > 0 && (
           <span className="text-lg md:text-xl font-bold text-primary">
-            ${product.salePrice}
+            £{product.salePrice}
           </span>
         )}
       </div>
@@ -81,7 +77,6 @@ function ShoppingProductTile({
 
   return (
     <Card className="w-full h-full flex flex-col justify-between rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300">
-      {/* ✅ If actions enabled, wrap in click handler */}
       {!disableActions ? (
         <div
           onClick={() => handleGetProductDetails(product._id)}
