@@ -1,8 +1,6 @@
-
-
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 
 const base =
   (import.meta.env.VITE_API_URL || window.location.origin).replace(/\/$/, "");
@@ -11,12 +9,22 @@ const api = axios.create({
   withCredentials: false,
 });
 
-const AIAssistant = () => {
+const AIAssistant = ({ userId, productId, onAddToCart }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const navigate = useNavigate();
+  const scrollRef = useRef();
+
+  // Store memory of all AI conversation to give full context
+  const [aiMemory, setAiMemory] = useState([]);
+
+  // Scroll to bottom whenever messages update
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages]);
 
   const handleSend = async () => {
     const text = userInput.trim();
@@ -29,13 +37,28 @@ const AIAssistant = () => {
     setLoading(true);
 
     try {
-      // Option B: your backend accepts a single `message` string
-      const res = await api.post("/ai/ask", { message: text });
-      const reply =
-        res?.data?.message?.content ??
-        "Sorry, I couldn't generate a response.";
+      // Send all memory to backend so AI knows context
+      const res = await api.post("/ai/ask", {
+        messages: aiMemory.concat({ role: "user", content: text }),
+        userId,
+        productId
+      });
 
-      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+      const aiMessage = res?.data?.message || "Sorry, no response.";
+      const suggestedProducts = res?.data?.suggestedProducts || [];
+
+      // Save AI memory for context
+      setAiMemory(prev => [
+        ...prev,
+        { role: "user", content: text },
+        { role: "assistant", content: aiMessage, suggestedProducts },
+      ]);
+
+      // Add AI response to messages
+      setMessages(prev => [
+        ...prev,
+        { role: "assistant", content: aiMessage, suggestedProducts },
+      ]);
     } catch (e) {
       const status = e?.response?.status;
       const detail =
@@ -45,12 +68,56 @@ const AIAssistant = () => {
         "Unknown error";
       setErr(`AI error${status ? ` (${status})` : ""}: ${detail}`);
       console.error("AI error", e?.response?.data || e);
-      // Roll back user message if you want:
-      // setMessages(messages);
     } finally {
       setLoading(false);
     }
   };
+
+  const renderMessage = (msg, i) => (
+    <div
+      key={i}
+      className={`${msg.role === "user" ? "text-right" : "text-left"}`}
+    >
+      <strong>{msg.role === "user" ? "You" : "EyiiDola"}:</strong>
+      <div className="mt-1">
+        <div>{msg.content}</div>
+
+        {/* Suggested product cards */}
+        {msg.suggestedProducts?.length > 0 && (
+          <div className="mt-2 grid grid-cols-1 gap-2">
+            {msg.suggestedProducts.map(p => (
+              <div
+                key={p.id}
+                className="cursor-pointer border rounded-lg p-2 hover:shadow-lg hover:bg-gray-50 transition flex justify-between items-center"
+              >
+                <div onClick={() => navigate(`/product/${p.id}`)} className="flex-1">
+                  {p.image && (
+                    <img
+                      src={p.image}
+                      alt={p.title}
+                      className="w-12 h-12 object-cover rounded mr-2 inline-block align-middle"
+                    />
+                  )}
+                  <span className="text-sm font-medium">{p.title}</span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span className="text-xs text-gray-600">${p.price}</span>
+                  {onAddToCart && (
+                    <button
+                      onClick={() => onAddToCart(p)}
+                      className="mt-1 px-2 py-1 text-xs bg-primary text-white rounded hover:opacity-90"
+                    >
+                      Add
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <>
@@ -65,23 +132,18 @@ const AIAssistant = () => {
       {/* Assistant Box */}
       {isOpen && (
         <div className="fixed bottom-20 right-6 w-80 bg-white shadow-xl rounded-lg border z-50 p-4 flex flex-col">
-          <div className="max-h-64 overflow-y-auto mb-3 space-y-2 text-sm pr-1">
-            {messages.map((msg, i) => (
-              <div
-                key={i}
-                className={`${msg.role === "user" ? "text-right" : "text-left"}`}
-              >
-                <strong>{msg.role === "user" ? "You" : "EyiiDola"}:</strong>{" "}
-                {msg.content}
-              </div>
-            ))}
+          <div
+            ref={scrollRef}
+            className="max-h-64 overflow-y-auto mb-3 space-y-2 text-sm pr-1"
+          >
+            {messages.map(renderMessage)}
           </div>
 
           <input
             className="border p-2 rounded mb-2 w-full text-sm"
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
-            placeholder="Ask me anything..."
+            placeholder="Ask me about products..."
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             disabled={loading}
           />
@@ -94,10 +156,9 @@ const AIAssistant = () => {
             {loading ? "Thinking..." : "Send"}
           </button>
 
-          {err && ( 
+          {err && (
             <div className="text-red-600 text-xs mt-2 break-words">{err}</div>
           )}
-                            
         </div>
       )}
     </>
