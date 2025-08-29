@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -9,22 +9,13 @@ const api = axios.create({
   withCredentials: false,
 });
 
-const AIAssistant = ({ userId, productId, onAddToCart }) => {
+const AIAssistant = ({ userId, productId }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const navigate = useNavigate();
-  const scrollRef = useRef();
-
-  // Store memory of all AI conversation to give full context
-  const [aiMemory, setAiMemory] = useState([]);
-
-  // Scroll to bottom whenever messages update
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
 
   const handleSend = async () => {
     const text = userInput.trim();
@@ -37,25 +28,16 @@ const AIAssistant = ({ userId, productId, onAddToCart }) => {
     setLoading(true);
 
     try {
-      // Send all memory to backend so AI knows context
-      const res = await api.post("/ai/ask", {
-        messages: aiMemory.concat({ role: "user", content: text }),
+      const res = await api.post("/ai/chat", {
+        messages: newMessages,
         userId,
-        productId
+        productId,
       });
 
       const aiMessage = res?.data?.message || "Sorry, no response.";
       const suggestedProducts = res?.data?.suggestedProducts || [];
 
-      // Save AI memory for context
-      setAiMemory(prev => [
-        ...prev,
-        { role: "user", content: text },
-        { role: "assistant", content: aiMessage, suggestedProducts },
-      ]);
-
-      // Add AI response to messages
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         { role: "assistant", content: aiMessage, suggestedProducts },
       ]);
@@ -82,34 +64,26 @@ const AIAssistant = ({ userId, productId, onAddToCart }) => {
       <div className="mt-1">
         <div>{msg.content}</div>
 
-        {/* Suggested product cards */}
+        {/* Suggested Products */}
         {msg.suggestedProducts?.length > 0 && (
           <div className="mt-2 grid grid-cols-1 gap-2">
-            {msg.suggestedProducts.map(p => (
+            {msg.suggestedProducts.map((p) => (
               <div
                 key={p.id}
-                className="cursor-pointer border rounded-lg p-2 hover:shadow-lg hover:bg-gray-50 transition flex justify-between items-center"
+                onClick={() => navigate(`/product/${p.id}`)}
+                className="flex items-center gap-2 border rounded p-2 cursor-pointer hover:shadow-md transition"
               >
-                <div onClick={() => navigate(`/product/${p.id}`)} className="flex-1">
-                  {p.image && (
-                    <img
-                      src={p.image}
-                      alt={p.title}
-                      className="w-12 h-12 object-cover rounded mr-2 inline-block align-middle"
-                    />
-                  )}
-                  <span className="text-sm font-medium">{p.title}</span>
-                </div>
-                <div className="flex flex-col items-end">
-                  <span className="text-xs text-gray-600">${p.price}</span>
-                  {onAddToCart && (
-                    <button
-                      onClick={() => onAddToCart(p)}
-                      className="mt-1 px-2 py-1 text-xs bg-primary text-white rounded hover:opacity-90"
-                    >
-                      Add
-                    </button>
-                  )}
+                {p.image && (
+                  <img
+                    src={p.image}
+                    alt={p.title}
+                    className="w-12 h-12 object-cover rounded"
+                  />
+                )}
+                <div className="flex flex-col text-sm">
+                  <span className="font-semibold">{p.title}</span>
+                  <span>Brand: {p.brand}</span>
+                  <span>${p.price}</span>
                 </div>
               </div>
             ))}
@@ -132,10 +106,7 @@ const AIAssistant = ({ userId, productId, onAddToCart }) => {
       {/* Assistant Box */}
       {isOpen && (
         <div className="fixed bottom-20 right-6 w-80 bg-white shadow-xl rounded-lg border z-50 p-4 flex flex-col">
-          <div
-            ref={scrollRef}
-            className="max-h-64 overflow-y-auto mb-3 space-y-2 text-sm pr-1"
-          >
+          <div className="max-h-64 overflow-y-auto mb-3 space-y-2 text-sm pr-1">
             {messages.map(renderMessage)}
           </div>
 

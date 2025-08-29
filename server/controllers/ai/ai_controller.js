@@ -4,12 +4,8 @@ const mongoose = require("mongoose");
 
 let Product;
 let Order;
-try {
-  Product = require("../../models/products");
-} catch (_) {}
-try {
-  Order = require("../../models/Order");
-} catch (_) {}
+try { Product = require("../../models/products"); } catch (_) {}
+try { Order = require("../../models/Order"); } catch (_) {}
 
 const API_KEY = process.env.OPENAI_API_KEY || process.env.VITE_OPENAI_API_KEY;
 const client = new OpenAI({ apiKey: API_KEY });
@@ -25,19 +21,18 @@ async function buildContext({ userId, productId }) {
   if (productId && Product?.findById) {
     try {
       const p = await Product.findById(productId)
-        .select("title category price salePrice salesPrice image")
+        .populate("brand", "name")
+        .select("title category price salePrice salesPrice image brand")
         .lean();
       if (p?.title) {
         const price =
           (typeof p.salePrice === "number" && p.salePrice > 0 && p.salePrice) ||
-          (typeof p.salesPrice === "number" &&
-            p.salesPrice > 0 &&
-            p.salesPrice) ||
+          (typeof p.salesPrice === "number" && p.salesPrice > 0 && p.salesPrice) ||
           p.price;
         context.push(
-          `Current product: ${p.title} (${p.category ?? "-"}) — $${Number(
-            price ?? 0
-          ).toFixed(2)}`
+          `Current product: ${p.title} (${p.category ?? "-"}) — $${Number(price ?? 0).toFixed(
+            2
+          )} — Brand: ${p.brand?.name || "Unknown"}`
         );
       }
     } catch (_) {}
@@ -82,17 +77,22 @@ async function buildContext({ userId, productId }) {
     try {
       const topProducts = await Product.find()
         .limit(50)
-        .select("title price _id image")
+        .populate("brand", "name")
+        .select("title price _id image brand")
         .lean();
       catalog = topProducts.map((p) => ({
         title: p.title,
         id: p._id.toString(),
         price: p.price,
         image: p.image || null,
+        brand: p.brand?.name || "Unknown",
       }));
       context.push(
         `Available products:\n${catalog
-          .map((p) => `${p.title} — $${p.price} — ${p.image || "no image"}`)
+          .map(
+            (p) =>
+              `${p.title} — $${p.price} — Brand: ${p.brand} — ${p.image || "no image"}`
+          )
           .join("\n")}`
       );
     } catch (_) {}
@@ -118,14 +118,8 @@ async function ask(req, res) {
   try {
     if (!ensureApiKey(res)) return;
 
-    const {
-      message,
-      messages,
-      userId,
-      productId,
-      model = "gpt-4o-mini",
-      temperature = 0.3,
-    } = req.body || {};
+    const { message, messages, userId, productId, model = "gpt-4o-mini", temperature = 0.3 } =
+      req.body || {};
 
     const baseMessages =
       Array.isArray(messages) && messages.length
@@ -142,7 +136,7 @@ async function ask(req, res) {
     const { context, catalog } = await buildContext({ userId, productId });
 
     const catalogLines = catalog
-      .map((p) => `${p.title} — $${p.price} — ${p.image || "no image"}`)
+      .map((p) => `${p.title} — $${p.price} — Brand: ${p.brand} — ${p.image || "no image"}`)
       .join("\n");
 
     const system = {
@@ -152,14 +146,14 @@ You are a shopping assistant for THIS APP only.
 Answer in 1–3 sentences and suggest up to 4 products.
 Use ONLY the catalog provided.
 Do NOT mention any external sites.
-ALWAYS return **raw JSON only** with no code blocks, markdown, or backticks.
+ALWAYS return raw JSON only with no code blocks, markdown, or backticks.
 
 Format:
 
 {
   "message": "Your reply here",
   "suggestedProducts": [
-    {"title": "Product title", "id": "productId", "price": 20, "image": "url"}
+    {"title": "Product title", "id": "productId", "price": 20, "image": "url", "brand": "Brand name"}
   ]
 }
 
@@ -204,22 +198,16 @@ async function chat(req, res) {
   try {
     if (!ensureApiKey(res)) return;
 
-    const {
-      messages = [],
-      userId,
-      productId,
-      model = "gpt-4o-mini",
-      temperature = 0.3,
-    } = req.body || {};
+    const { messages = [], userId, productId, model = "gpt-4o-mini", temperature = 0.3 } =
+      req.body || {};
+
     if (!Array.isArray(messages) || messages.length === 0)
-      return res
-        .status(400)
-        .json({ success: false, message: "Provide 'messages' array." });
+      return res.status(400).json({ success: false, message: "Provide 'messages' array." });
 
     const { context, catalog } = await buildContext({ userId, productId });
 
     const catalogLines = catalog
-      .map((p) => `${p.title} — $${p.price} — ${p.image || "no image"}`)
+      .map((p) => `${p.title} — $${p.price} — Brand: ${p.brand} — ${p.image || "no image"}`)
       .join("\n");
 
     const system = {
@@ -229,14 +217,14 @@ You are a shopping assistant for THIS APP only.
 Answer in 1–3 sentences and suggest up to 4 products.
 Use ONLY the catalog provided.
 Do NOT mention any external sites.
-ALWAYS return **raw JSON only** with no code blocks, markdown, or backticks.
+ALWAYS return raw JSON only with no code blocks, markdown, or backticks.
 
 Format:
 
 {
   "message": "Your reply here",
   "suggestedProducts": [
-    {"title": "Product title", "id": "productId", "price": 20, "image": "url"}
+    {"title": "Product title", "id": "productId", "price": 20, "image": "url", "brand": "Brand name"}
   ]
 }
 
