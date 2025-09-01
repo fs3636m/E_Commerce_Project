@@ -1,3 +1,4 @@
+// store/brand/orders_slice.js
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
 
@@ -7,22 +8,26 @@ const initialState = {
   error: null,
 };
 
+// ✅ Thunk to fetch orders for the logged-in brand
 export const fetchBrandOrders = createAsyncThunk(
   "brand/fetchOrders",
   async (_, thunkAPI) => {
     try {
+      const token = sessionStorage.getItem("token"); // get JWT
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/shop/brand/orders`,
-        { withCredentials: true }
+        `${import.meta.env.VITE_API_URL}/api/brand/orders`,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      return res.data.orders;
+      return res.data.orders; // array of orders filtered for this brand
     } catch (err) {
-      return thunkAPI.rejectWithValue(err.response?.data?.message || "Error fetching orders");
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || "Error fetching brand orders"
+      );
     }
   }
 );
 
-const brandOrderSlice = createSlice({
+const brandOrdersSlice = createSlice({
   name: "brandOrders",
   initialState,
   reducers: {},
@@ -36,6 +41,7 @@ const brandOrderSlice = createSlice({
         state.isLoading = false;
         state.brandOrders = action.payload;
       })
+
       .addCase(fetchBrandOrders.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
@@ -44,4 +50,4 @@ const brandOrderSlice = createSlice({
   },
 });
 
-export default brandOrderSlice.reducer;
+export default brandOrdersSlice.reducer;

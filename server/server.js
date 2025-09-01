@@ -73,7 +73,7 @@ app.use("/api/shop/brand", require("./routes/shop/brand_private_routes"));  // b
 app.use("/api/shop", require("./routes/shop/brand_public_routes"));         // getAllPublicBrands
 app.use("/api/brands", require("./routes/brand/brand_public_routes"));      // public view /brands/:id + reviews
 app.use("/api/brand/reports", require("./routes/brand/brandReports_route"));
-
+app.use("/api/brand", require("./routes/brand/orders"));
 
 // ✅ Health Check
 app.get("/", (req, res) => {

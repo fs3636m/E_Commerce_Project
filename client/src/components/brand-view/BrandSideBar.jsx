@@ -5,6 +5,7 @@ import {
   UserCircle2,
   LogOut,
   ReceiptPoundSterling,
+  ListOrdered,
 } from "lucide-react";
 import SidebarTemplate from "../common/SideBarTemplate";
 import { useNavigate } from "react-router-dom";
@@ -29,6 +30,13 @@ export default function BrandSideBar({ open, setOpen }) {
       label: "Products",
       path: "/brand/products",
       icon: <ShoppingBasket />,
+    },
+    {
+      id: "orders",
+      label: "Orders",
+      path: "/brand/orders",
+      icon: <ListOrdered />,
+
     },
     {
       id: "create-brand",

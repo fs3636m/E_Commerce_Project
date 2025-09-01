@@ -1,22 +1,23 @@
 const Order = require("../../models/Order");
-const Product = require("../../models/products");
 const Brand = require("../../models/brand");
 
 // 🔐 Get all orders that include this brand’s products
 const getBrandOrders = async (req, res) => {
   try {
+    // Find the brand for the logged-in user
     const brand = await Brand.findOne({ owner: req.user.id });
-    if (!brand) return res.status(404).json({ success: false, message: "Brand not found" });
+    if (!brand) {
+      return res.status(404).json({ success: false, message: "Brand not found" });
+    }
 
-    const brandProducts = await Product.find({ brandRef: brand._id });
-    const brandProductIds = brandProducts.map(p => p._id.toString());
-
+    // Get all orders
     const allOrders = await Order.find();
 
+    // Filter orders to only include items belonging to this brand
     const filteredOrders = allOrders
       .map(order => {
-        const brandItems = order.cartItems.filter(item =>
-          brandProductIds.includes(item.productId)
+        const brandItems = order.cartItems.filter(
+          item => item.brandId.toString() === brand._id.toString()
         );
 
         if (brandItems.length === 0) return null;

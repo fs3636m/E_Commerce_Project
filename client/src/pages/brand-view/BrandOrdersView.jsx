@@ -1,52 +1,117 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchBrandOrders } from "@/store/brand/order_slice";
-import { Card } from "@/components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Dialog, DialogContent } from "../../components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
+import { Badge } from "../../components/ui/badge";
 
-const BrandOrdersView = () => {
+export default function BrandOrdersView() {
   const dispatch = useDispatch();
-  const { brandOrders: orders, isLoading, error } = useSelector((state) => state.brandOrders);
+  const { brandOrders: orders, isLoading, error } = useSelector(
+    (state) => state.brandOrders
+  );
+
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   useEffect(() => {
     dispatch(fetchBrandOrders());
   }, [dispatch]);
 
+  const handleViewItems = (order) => {
+    setSelectedOrder(order);
+    setOpenDialog(true);
+  };
+
   if (isLoading) return <p className="p-4">Loading orders...</p>;
   if (error) return <p className="p-4 text-red-500">Error: {error}</p>;
-  if (!orders.length) return <p className="p-4 text-gray-500">No orders for your brand yet.</p>;
+  if (!orders.length)
+    return <p className="p-4 text-gray-500">No orders for your brand yet.</p>;
 
   return (
-    <div className="p-6 space-y-4">
-      <h2 className="text-2xl font-bold">Brand Orders</h2>
-
-      {orders.map((order) => (
-        <Card key={order._id} className="p-4">
-          <div className="mb-2">
-            <strong>Order ID:</strong> {order._id}
-          </div>
-          <div>
-            <strong>Status:</strong> {order.orderStatus} |{" "}
-            <strong>Total:</strong> ₦{order.totalAmount.toLocaleString()}
-          </div>
-          <div>
-            <strong>Created:</strong>{" "}
-            {new Date(order.orderDate || order.createdAt).toLocaleDateString()}
-          </div>
-
-          <div className="mt-2">
-            <strong>Items:</strong>
-            <ul className="list-disc list-inside mt-1">
-              {order.cartItems.map((item, i) => (
-                <li key={i}>
-                  {item.title} × {item.quantity} – ₦{item.price}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Card>
-      ))}
-    </div>
+    <Card className="p-4">
+      <CardHeader>
+        <CardTitle>Brand Orders</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Order ID</TableHead>
+              <TableHead>Order Date</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Total</TableHead>
+              <TableHead>
+                <span className="sr-only">View Items</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {orders.map((order) => (
+              <TableRow key={order._id}>
+                <TableCell>{order._id}</TableCell>
+                <TableCell>
+                  {new Date(order.createdAt).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    className={`py-1 px-3 ${
+                      order.status === "confirmed"
+                        ? "bg-green-500"
+                        : order.status === "rejected"
+                        ? "bg-red-600"
+                        : "bg-gray-700"
+                    }`}
+                  >
+                    {order.status}
+                  </Badge>
+                </TableCell>
+                <TableCell>£{order.totalAmount.toLocaleString()}</TableCell>
+                <TableCell>
+                  <Dialog
+                    open={openDialog && selectedOrder?._id === order._id}
+                    onOpenChange={() => setOpenDialog(false)}
+                  >
+                    <Button onClick={() => handleViewItems(order)}>
+                      View Items
+                    </Button>
+                    {selectedOrder && (
+                      <DialogContent className="sm:max-w-[500px] p-4">
+                        <h3 className="font-bold mb-2">Order Items</h3>
+                        <ul className="list-disc list-inside mb-2">
+                          {selectedOrder.items.map((item) => (
+                            <li
+                              key={item._id}
+                              className="flex justify-between mb-1"
+                            >
+                              <span>{item.title}</span>
+                              <span>Qty: {item.quantity}</span>
+                              <span>£{item.price.toLocaleString()}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="flex justify-between font-bold">
+                          <span>Total:</span>
+                          <span>£{selectedOrder.totalAmount.toLocaleString()}</span>
+                        </div>
+                      </DialogContent>
+                    )}
+                  </Dialog>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
-};
-
-export default BrandOrdersView;
+}

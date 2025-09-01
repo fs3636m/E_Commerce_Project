@@ -42,7 +42,7 @@ const store = configureStore({
     shopReview: shopReviewSlice,
     commonFeature: commonFeatureSlice,
     brandProducts: brandProductSlice,
-    brandOrder: brandOrderReducer,
+    brandOrders: brandOrderReducer,
     brand: brandReducer,
     brandSummary: brandSummaryReducer,
     homepageFeature: homepageFeatureReducer,
