@@ -242,66 +242,45 @@ const HomeLayout = () => {
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-8 mt-20">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
-          <div>
-            <h3 className="text-lg font-bold text-white mb-2">ECommerce</h3>
-            <p className="text-sm">
-              Your trusted place to shop quality products from verified brands.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-semibold text-white mb-2">Quick Links</h4>
-            <ul className="space-y-1 text-sm">
-              <li>
-                <Link to="/brands">Brands</Link>
-              </li>
-              <li>
-                <Link to="/shop/home">Home</Link>
-              </li>
-              <li>
-                <Link to="/search">Search</Link>
-              </li>
-              <li>
-                <Link to="/auth/login">Login</Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-white mb-2">Support</h4>
-            <ul className="space-y-1 text-sm">
-              <li>
-                <Link to="/contact">Contact Us</Link>
-              </li>
-              <li>
-                <Link to="/faq">FAQs</Link>
-              </li>
-              <li>
-                <Link to="/terms">Terms of Service</Link>
-              </li>
-              <li>
-                <Link to="/privacy">Privacy Policy</Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="font-semibold text-white mb-2">Follow Us</h4>
-            <div className="flex gap-4">
-              <a href="#" className="hover:text-white">
-                Facebook
-              </a>
-              <a href="#" className="hover:text-white">
-                Instagram
-              </a>
-              <a href="#" className="hover:text-white">
-                Twitter
-              </a>
-            </div>
-          </div>
-        </div>
-        <div className="text-center text-xs text-gray-500 mt-6">
-          © {new Date().getFullYear()} ECommerce. All rights reserved.
-        </div>
-      </footer>
+  <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+    <div>
+      <h3 className="text-lg font-bold text-white mb-2">ECommerce</h3>
+      <p className="text-sm">
+        Your trusted place to shop quality products from verified brands.
+      </p>
+    </div>
+    <div>
+      <h4 className="font-semibold text-white mb-2">Quick Links</h4>
+      <ul className="space-y-1 text-sm">
+        <li><Link to="/brands">Brands</Link></li>
+        <li><Link to="/shop/home">Home</Link></li>
+        <li><Link to="/search">Search</Link></li>
+        <li><Link to="/auth/login">Login</Link></li>
+      </ul>
+    </div>
+    <div>
+      <h4 className="font-semibold text-white mb-2">Support</h4>
+      <ul className="space-y-1 text-sm">
+        <li><Link to="/contact">Contact Us</Link></li>
+        <li><Link to="/faq">FAQs</Link></li>
+        <li><Link to="/terms">Terms of Service</Link></li>
+        <li><Link to="/privacy">Privacy Policy</Link></li>
+      </ul>
+    </div>
+    <div>
+      <h4 className="font-semibold text-white mb-2">Follow Us</h4>
+      <div className="flex gap-4">
+        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-white">Facebook</a>
+        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-white">Instagram</a>
+        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-white">Twitter</a>
+      </div>
+    </div>
+  </div>
+  <div className="text-center text-xs text-gray-500 mt-6">
+    © {new Date().getFullYear()} ECommerce. All rights reserved.
+  </div>
+</footer>
+
     </div>
   );
 };
