@@ -6,6 +6,11 @@ const orderItemSchema = new mongoose.Schema({
     ref: "Product", // still reference for filtering
     required: true,
   },
+  brandId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Brand", // reference to the Brand model
+    required: true,
+  },
   title: { type: String, required: true }, // snapshot
   image: { type: String },
   price: { type: Number, required: true }, // snapshot price at time of order

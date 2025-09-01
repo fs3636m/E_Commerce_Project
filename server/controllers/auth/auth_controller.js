@@ -100,13 +100,15 @@ const loginUser = async (req, res) => {
   }
 };
 
-// ✅ Logout
+
+// ✅ Logout (stateless with JWT in sessionStorage)
 const logoutUser = (req, res) => {
-  res
-    .clearCookie("token")
-    .status(200)
-    .json({ success: true, message: "Logged out successfully" });
+  res.status(200).json({
+    success: true,
+    message: "Logged out successfully",
+  });
 };
+
 
 // ✅ Auth Middleware
 const authMiddleware = async (req, res, next) => {

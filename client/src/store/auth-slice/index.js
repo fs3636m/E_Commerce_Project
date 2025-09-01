@@ -8,9 +8,8 @@ const initialState = {
   token: sessionStorage.getItem("token") || null, // <- restore here
 };
 
-
 export const registerUser = createAsyncThunk(
-  'auth/register',
+  "auth/register",
   async (formData, { rejectWithValue }) => {
     try {
       const response = await axios.post(
@@ -19,22 +18,23 @@ export const registerUser = createAsyncThunk(
         {
           withCredentials: true,
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || {
-        message: 'Registration failed'
-      });
+      return rejectWithValue(
+        error.response?.data || {
+          message: "Registration failed",
+        }
+      );
     }
   }
 );
 
-
 export const loginUser = createAsyncThunk(
-  'auth/login',
+  "auth/login",
   async (formData, { rejectWithValue }) => {
     try {
       const response = await axios.post(
@@ -43,15 +43,17 @@ export const loginUser = createAsyncThunk(
         {
           withCredentials: true,
           headers: {
-            'Content-Type': 'application/json'
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || { 
-        message: 'Login failed' 
-      });
+      return rejectWithValue(
+        error.response?.data || {
+          message: "Login failed",
+        }
+      );
     }
   }
 );
@@ -61,7 +63,7 @@ export const logoutUser = createAsyncThunk(
 
   async () => {
     const response = await axios.post(
-     `${import.meta.env.VITE_API_URL}/api/auth/logout`,
+      `${import.meta.env.VITE_API_URL}/api/auth/logout`,
       {},
       {
         withCredentials: true,
@@ -76,11 +78,9 @@ export const checkAuth = createAsyncThunk(
   "/auth/checkauth",
 
   async (token) => {
-
     const response = await axios.get(
-     `${import.meta.env.VITE_API_URL}/api/auth/check-auth`,
+      `${import.meta.env.VITE_API_URL}/api/auth/check-auth`,
       {
-       
         headers: {
           Authorization: `Bearer ${token}`,
           "Cache-Control":
@@ -102,7 +102,7 @@ const authSlice = createSlice({
       state.token = null;
       state.user = null;
       state.isAuthenticated = false;
-    }
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -125,41 +125,50 @@ const authSlice = createSlice({
         state.isLoading = true;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
-        console.log(action);
-
         state.isLoading = false;
         state.user = action.payload.success ? action.payload.user : null;
         state.isAuthenticated = action.payload.success;
-        state.token = action.payload.token
-        sessionStorage.setItem("token", action.payload.token); 
+        state.token = action.payload.token;
+
+        // 🔥 Persist both user & token
+        if (action.payload.success) {
+          sessionStorage.setItem("token", action.payload.token);
+          sessionStorage.setItem("user", JSON.stringify(action.payload.user));
+        }
       })
+
       .addCase(loginUser.rejected, (state, action) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
-        state.token = null
+        state.token = null;
       });
 
-      builder
+    builder
       .addCase(checkAuth.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(checkAuth.fulfilled, (state, action) => {
-        console.log('CheckAuth fulfilled response:', action.payload);
+        console.log("CheckAuth fulfilled response:", action.payload);
         state.isLoading = false;
         state.user = action.payload.success ? action.payload.user : null;
         state.isAuthenticated = action.payload.success;
       })
       .addCase(checkAuth.rejected, (state, action) => {
-        console.log('CheckAuth rejected:', action.error);  
+        console.log("CheckAuth rejected:", action.error);
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
       })
-      .addCase(logoutUser.fulfilled, (state, action) => {
+      .addCase(logoutUser.fulfilled, (state) => {
         state.isLoading = false;
         state.user = null;
         state.isAuthenticated = false;
+        state.token = null;
+
+        // 🔥 Clear persisted auth state
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("user");
       });
   },
 });

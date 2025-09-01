@@ -18,9 +18,11 @@ export const fetchBrandSalesReport = createAsyncThunk(
           withCredentials: true,
         }
       );
+      console.log('data:', data); // add this log
 
       return data; // { success: true, series: [...] }
     } catch (err) {
+      console.error("Error fetching brand sales report:", err);
       return rejectWithValue(err?.response?.data ?? "Request failed");
     }
   }

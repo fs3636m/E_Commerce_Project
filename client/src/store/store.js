@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
+import aiReducer from "./ai/aiSlice";
 import authReducer from "./auth-slice";
 import adminProductsSlice from "./admin/products_slice";
 import adminOrderReducer from "./admin/order_slice";
 import adminBrandReducer from './admin/admin_brand_slice';
 import adminReportsReducer from "./admin/adminBrandReportsSlice";
+import { saveToLocalStorage } from "./ai/aiSlice";
 
 import shopOrderSlice from "./shop/order_slice";
 import shopProductsSlice from "./shop/products_slice";
@@ -25,6 +27,7 @@ import brandReportsReducer from "./brand/brandSales_slice";
 const store = configureStore({
   reducer: {
     auth: authReducer,
+     ai: aiReducer,
 
     adminOrder: adminOrderReducer,
     adminProducts: adminProductsSlice,
@@ -46,6 +49,8 @@ const store = configureStore({
     brandReports: brandReportsReducer
     
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(saveToLocalStorage),
 });
 
 export default store;

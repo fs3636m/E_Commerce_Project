@@ -7,7 +7,7 @@ const createOrder = async (req, res) => {
   try {
     const {
       userId,
-      cartItems,
+      cartItems, // These cartItems come from frontend and likely don't have brandId
       addressInfo,
       orderStatus,
       paymentMethod,
@@ -19,7 +19,28 @@ const createOrder = async (req, res) => {
       payerId,
     } = req.body;
 
-    // Build PayPal payment JSON
+    // ✅ FIRST: Enrich cartItems with brandId from products
+    const enrichedCartItems = await Promise.all(
+      cartItems.map(async (item) => {
+        try {
+          // Find the product to get its brandId
+          const product = await Product.findById(item.productId);
+          if (!product) {
+            throw new Error(`Product not found: ${item.productId}`);
+          }
+          
+          return {
+            ...item,
+            brandId: product.brand, // Add brandId from the product
+          };
+        } catch (error) {
+          console.error("Error enriching cart item:", error);
+          throw error;
+        }
+      })
+    );
+
+    // Build PayPal payment JSON (using original cartItems for PayPal)
     const create_payment_json = {
       intent: "sale",
       payer: {
@@ -57,10 +78,10 @@ const createOrder = async (req, res) => {
           message: "Error while creating PayPal payment",
         });
       } else {
-        // ✅ Create new order in Mongo
+        // ✅ Create new order with ENRICHED cartItems (that include brandId)
         const newlyCreatedOrder = new Order({
           userId,
-          cartItems,
+          cartItems: enrichedCartItems, // Use the enriched items with brandId
           addressInfo,
           orderStatus,
           paymentMethod,
@@ -151,6 +172,17 @@ const capturePayment = async (req, res) => {
 
     // Save the updated order
     await order.save();
+
+    // ✅ Verify brandId is present in all items (for debugging)
+    console.log("Order cartItems with brandId:");
+    order.cartItems.forEach((item, index) => {
+      console.log(`Item ${index + 1}:`, {
+        product: item.title,
+        brandId: item.brandId ? item.brandId.toString() : 'MISSING',
+        quantity: item.quantity,
+        price: item.price
+      });
+    });
 
     return res.status(200).json({
       success: true,

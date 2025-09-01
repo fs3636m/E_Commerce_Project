@@ -28,7 +28,12 @@ const getBrandById = async (req, res) => {
 
     const brand = await Brand.findById(brandId).populate("owner", "username email");
     if (!brand) {
-      return res.status(404).json({ success: false, message: "Brand not found" });
+      // 🔥 send redirect flag
+      return res.status(404).json({ 
+        success: false, 
+        message: "Brand not found", 
+        redirectToCreate: true 
+      });
     }
 
     const products = await Product.find({ brand: brand._id })
@@ -43,6 +48,7 @@ const getBrandById = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 /**
  * 🔐 Get brand owned by logged-in user (with products + reviews + rating)
