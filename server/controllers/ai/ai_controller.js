@@ -24,7 +24,119 @@ const formatGBP = (amount) => {
   }).format(isNaN(num) ? 0 : num);
 };
 
-// Build comprehensive context for AI
+// ==================== CRITICAL SECURITY SETTINGS ====================
+const FORBIDDEN_PHRASES = [
+  'amazon', 'ebay', 'walmart', 'target', 'best buy', 'external',
+  'other website', 'other store', 'competitor', 'elsewhere',
+  'check out', 'you can buy', 'available at', 'sold at',
+  'other retailers', 'other platforms', 'on [any site]', 'from [any store]',
+  'local boutiques', 'local boutique', 'boutiques offer', 
+  'online platform', 'online platforms', 'custom outfitter',
+  'specialty stores', 'specialty shop', 'tailor shop',
+  'many places', 'various places', 'other places',
+  'explore options', 'look into', 'check with',
+  'i recommend looking', 'you might want to check',
+  'consider visiting', 'try reaching out to',
+  'third-party', 'another company', 'other providers'
+];
+
+// ==================== HELPER FUNCTIONS ====================
+function getFallbackProducts(catalog) {
+  return catalog
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    .slice(0, 3)
+    .map(p => ({
+      id: p.id,
+      title: p.title,
+      reason: "Popular item in our store"
+    }));
+}
+
+function getFashionProducts(catalog) {
+  const fashionKeywords = ['shirt', 'dress', 'pants', 'jeans', 'jacket', 'coat', 
+                          'skirt', 'blouse', 'sweater', 'hoodie', 'activewear', 
+                          'outfit', 'fashion', 'clothing', 'apparel'];
+  
+  return catalog
+    .filter(product => 
+      fashionKeywords.some(keyword => 
+        product.title.toLowerCase().includes(keyword) ||
+        (product.category && product.category.toLowerCase().includes(keyword))
+      )
+    )
+    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+    .slice(0, 4)
+    .map(p => ({
+      id: p.id,
+      title: p.title,
+      reason: "Fashion item from our collection"
+    }));
+}
+
+function validateAIResponse(response, catalog, userMessage = "") {
+  const responseLower = response.message.toLowerCase();
+  const userMessageLower = userMessage.toLowerCase();
+  
+  // Check for custom outfit related forbidden phrases
+  const customOutfitForbidden = [
+    'local boutiques', 'online platform', 'custom outfitter', 
+    'specialty stores', 'many places offer', 'various places'
+  ];
+  
+  const hasCustomOutfitMention = customOutfitForbidden.some(phrase =>
+    responseLower.includes(phrase)
+  );
+  
+  // Check if user is asking about custom outfits
+  const isAskingAboutCustomOutfits = userMessageLower.includes('custom outfit') ||
+                                    userMessageLower.includes('custom clothing') ||
+                                    userMessageLower.includes('tailor') ||
+                                    userMessageLower.includes('bespoke');
+  
+  // Check general forbidden phrases
+  const hasForbiddenPhrase = FORBIDDEN_PHRASES.some(phrase => 
+    responseLower.includes(phrase.toLowerCase())
+  );
+  
+  // Check if user is asking about external platforms
+  const isAskingAboutExternal = FORBIDDEN_PHRASES.some(phrase =>
+    userMessageLower.includes(phrase.toLowerCase())
+  );
+  
+  if (hasCustomOutfitMention || hasForbiddenPhrase || isAskingAboutExternal || isAskingAboutCustomOutfits) {
+    console.warn('Blocked external recommendation attempt');
+    
+    // Special handling for custom outfit queries
+    if (isAskingAboutCustomOutfits || hasCustomOutfitMention) {
+      const fashionProducts = getFashionProducts(catalog);
+      return {
+        message: fashionProducts.length > 0 
+          ? "While we don't offer custom outfit services directly, we have a wide range of unique and stylish clothing items that might meet your needs. Here are some fashion items from our collection:"
+          : "We don't offer custom outfit services, but we have many other great products in our store. How else can I help you today?",
+        suggestedProducts: fashionProducts,
+        responseType: "not_available"
+      };
+    }
+    
+    return {
+      message: "I can only provide information about products available in our store. We have a great selection of items - would you like me to show you what we have available?",
+      suggestedProducts: getFallbackProducts(catalog),
+      responseType: "general_help"
+    };
+  }
+  
+  // Validate suggested products are actually in our catalog
+  if (response.suggestedProducts?.length) {
+    const catalogIds = new Set(catalog.map(p => p.id));
+    response.suggestedProducts = response.suggestedProducts
+      .filter(p => p.id && catalogIds.has(p.id))
+      .slice(0, 4);
+  }
+  
+  return response;
+}
+
+// ==================== CORE FUNCTIONS ====================
 async function buildContext({ userId, productId, brandId }) {
   const context = [];
   let catalog = [];
@@ -60,58 +172,6 @@ async function buildContext({ userId, productId, brandId }) {
       }
     } catch (error) {
       console.error("Error fetching brand:", error);
-    }
-  }
-
-  // User preferences and order history
-  if (userId && Order?.aggregate) {
-    try {
-      const uid = toId(userId);
-      if (uid) {
-        // User's favorite categories
-        const preferences = await Order.aggregate([
-          { $match: { userId: uid, orderStatus: { $in: ["completed", "confirmed", "shipped"] } } },
-          { $unwind: "$cartItems" },
-          {
-            $lookup: {
-              from: "products",
-              localField: "cartItems.productId",
-              foreignField: "_id",
-              as: "product",
-            },
-          },
-          { $unwind: "$product" },
-          {
-            $group: {
-              _id: "$product.category",
-              totalSpent: { $sum: { $multiply: ["$cartItems.price", "$cartItems.quantity"] } },
-              itemsBought: { $sum: "$cartItems.quantity" },
-            },
-          },
-          { $sort: { totalSpent: -1 } },
-          { $limit: 5 },
-        ]);
-        
-        if (preferences.length) {
-          const topCategories = preferences.map(p => `${p._id} (${formatGBP(p.totalSpent)} spent, ${p.itemsBought} items)`);
-          context.push(`USER_PREFERENCES: Top categories - ${topCategories.join(", ")}`);
-        }
-
-        // User's recent orders summary
-        const recentOrders = await Order.find({ userId: uid })
-          .sort({ orderDate: -1 })
-          .limit(3)
-          .lean();
-        
-        if (recentOrders.length) {
-          const orderSummary = recentOrders.map(order => 
-            `Order #${order._id.toString().slice(-6)}: ${formatGBP(order.totalAmount)} - ${order.orderStatus}`
-          );
-          context.push(`RECENT_ORDERS: ${orderSummary.join(" | ")}`);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
     }
   }
 
@@ -179,83 +239,112 @@ function ensureApiKey(res) {
   return true;
 }
 
-// Enhanced system prompt for better responses
+// ==================== PROMPT ENGINEERING ====================
 const getSystemPrompt = (catalog, context) => `
-You are a friendly shopping assistant for our UK-based e-commerce app. Your role is to:
+CRITICAL RULES - YOU MUST FOLLOW THESE ABSOLUTELY:
+1. NEVER mention or recommend any other websites, stores, boutiques, or platforms
+2. ONLY recommend products from our EXACT catalog below
+3. NEVER suggest going elsewhere for any reason, including custom outfits
+4. If we don't offer a service (like custom outfits), suggest alternatives FROM OUR CATALOG
+5. ONLY discuss products and services available in OUR store
 
-1. PROVIDE HELPFUL, FRIENDLY RESPONSES to greetings and questions
-2. SUGGEST RELEVANT PRODUCTS when appropriate
-3. ANSWER QUESTIONS about products, brands, and shopping
-4. BE CONVERSATIONAL but informative
-5. ALWAYS USE BRITISH POUNDS (£) FOR ALL PRICES
+ABSOLUTELY FORBIDDEN - NEVER MENTION:
+- Local boutiques, online platforms, or any external providers
+- Amazon, eBay, Walmart, Target, Best Buy, or any competitors
+- "You can find this at [any place]"
+- "Many places offer this"
+- Any external platforms or marketplaces
 
-IMPORTANT: You MUST ALWAYS respond with valid JSON in this exact format:
+SPECIFIC RULE FOR CUSTOM OUTFITS:
+If user asks about custom outfits or tailoring services, respond with:
+"We don't offer custom outfit services, but we have these fashion items that might interest you:"
+Then suggest relevant clothing items FROM OUR CATALOG.
 
+RESPONSE FORMAT (JSON ONLY):
 {
-  "message": "Your response message here - ALWAYS mention prices in £",
+  "message": "Your response - NEVER mention other stores",
   "suggestedProducts": [
     {
       "id": "product_id",
-      "title": "Product Name",
+      "title": "Product Name", 
       "reason": "Why suggested"
     }
   ],
-  "responseType": "greeting|product_info|general_help|error"
+  "responseType": "greeting|product_info|general_help|not_available"
 }
 
-RESPONSE TYPES:
-- "greeting": For hello, hi, greetings
-- "product_info": When discussing specific products
-- "general_help": For shopping questions and advice  
-- "error": For unsupported requests
-
-RULES:
-- ALL PRICES MUST BE IN BRITISH POUNDS (£)
-- For greetings: Be warm and welcoming, offer help with shopping
-- For product questions: Be informative and helpful
-- Only suggest products from the catalog below
-- Keep responses conversational and friendly
-- Always format prices as £XX.XX
-
-AVAILABLE PRODUCTS:
+OUR PRODUCT CATALOG (ONLY RECOMMEND THESE):
 ${catalog.map(p => 
   `${p.title} (ID: ${p.id}) - ${p.priceFormatted} - ${p.brand} - ${p.rating}/5 stars`
 ).join('\n')}
 
-EXAMPLES:
+EXAMPLE SAFE RESPONSES:
 
-User says: "hello"
+User: "Do you do custom outfits?"
 Response: {
-  "message": "Hello! Welcome to our UK store! I'm here to help you find great products. What can I help you with today?",
-  "suggestedProducts": [],
-  "responseType": "greeting"
+  "message": "We don't offer custom outfit services, but we have a great selection of ready-to-wear fashion items. Here are some popular choices:",
+  "suggestedProducts": [
+    {"id": "cloth123", "title": "Designer Dress", "reason": "Elegant ready-to-wear option"},
+    {"id": "cloth456", "title": "Tailored Shirt", "reason": "High-quality pre-made shirt"}
+  ],
+  "responseType": "not_available"
 }
 
-User says: "what products do you have?"
+User: "Where can I get custom clothing?"
 Response: {
-  "message": "We have a great selection of products! Here are some of our most popular items starting from £25.99:",
+  "message": "I can only provide information about our store's products. We have these stylish clothing items available:",
   "suggestedProducts": [
-    {"id": "prod123", "title": "Wireless Headphones", "reason": "Best seller with great reviews for £89.99"},
-    {"id": "prod456", "title": "Smart Watch", "reason": "Feature-rich and popular choice for £199.99"}
+    {"id": "fash123", "title": "Premium Blazer", "reason": "Well-fitted ready-to-wear"},
+    {"id": "fash456", "title": "Designer Pants", "reason": "Quality fashion item"}
   ],
   "responseType": "general_help"
 }
 
-User says: "how much is this product?"
+User: "Is this cheaper on Amazon?"
 Response: {
-  "message": "This product is currently priced at £49.99. It's on sale from the original price of £69.99!",
+  "message": "I can only provide pricing for our store. We offer competitive prices and excellent service on all our products!",
   "suggestedProducts": [],
-  "responseType": "product_info"
+  "responseType": "general_help"
 }
 `;
 
-// Fallback responses for when AI fails
-const getFallbackResponse = (userMessage) => {
+// ==================== FALLBACK RESPONSES ====================
+const getFallbackResponse = (userMessage, catalog = []) => {
   const lowerMessage = userMessage.toLowerCase();
+  
+  // Check if user is asking about external platforms
+  const isAskingAboutExternal = FORBIDDEN_PHRASES.some(phrase =>
+    lowerMessage.includes(phrase.toLowerCase())
+  );
+  
+  // Check for custom outfit queries
+  const isAskingAboutCustomOutfits = lowerMessage.includes('custom outfit') || 
+                                    lowerMessage.includes('custom clothing') || 
+                                    lowerMessage.includes('tailor') ||
+                                    lowerMessage.includes('bespoke');
+
+  if (isAskingAboutExternal) {
+    return {
+      message: "I can only provide information about products available in our store. We have a great selection of items - what are you looking for today?",
+      suggestedProducts: [],
+      responseType: "general_help"
+    };
+  }
+  
+  if (isAskingAboutCustomOutfits) {
+    const fashionProducts = getFashionProducts(catalog);
+    return {
+      message: fashionProducts.length > 0 
+        ? "We don't offer custom outfit services, but we have a wonderful collection of fashion items that might suit your style. Here are some options:"
+        : "We don't offer custom outfit services, but we have many other great products in our store. How else can I help you today?",
+      suggestedProducts: fashionProducts,
+      responseType: "not_available"
+    };
+  }
   
   if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
     return {
-      message: "Hello! 👋 Welcome to our UK store! I'm here to help you find amazing products. What can I help you with today?",
+      message: "Hello! 👋 Welcome to our store! I'm here to help you find amazing products from our collection. What can I help you with today?",
       suggestedProducts: [],
       responseType: "greeting"
     };
@@ -263,7 +352,7 @@ const getFallbackResponse = (userMessage) => {
   
   if (lowerMessage.includes('thank') || lowerMessage.includes('thanks')) {
     return {
-      message: "You're welcome! 😊 Is there anything else I can help you find today?",
+      message: "You're welcome! 😊 Is there anything else I can help you find in our store today?",
       suggestedProducts: [],
       responseType: "greeting"
     };
@@ -271,27 +360,20 @@ const getFallbackResponse = (userMessage) => {
   
   if (lowerMessage.includes('product') || lowerMessage.includes('item')) {
     return {
-      message: "I'd love to help you find products! We have items ranging from £15 to £500. Could you tell me what type of items you're looking for?",
-      suggestedProducts: [],
-      responseType: "general_help"
-    };
-  }
-  
-  if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('how much')) {
-    return {
-      message: "I can help you with pricing information! Our products range from affordable options around £20 to premium items up to £500. What specific product are you interested in?",
+      message: "I'd love to help you find products in our store! We have items ranging from £15 to £500. What type of items are you looking for?",
       suggestedProducts: [],
       responseType: "general_help"
     };
   }
   
   return {
-    message: "I'm here to help you with your shopping needs! We have great products at competitive prices in GBP. What can I assist you with today?",
+    message: "I'm here to help you with your shopping needs in our store! We have great products at competitive prices. What can I assist you with today?",
     suggestedProducts: [],
     responseType: "general_help"
   };
 };
 
+// ==================== MAIN REQUEST HANDLER ====================
 async function handleAIRequest(req, res, isChat = false) {
   try {
     if (!ensureApiKey(res)) return;
@@ -299,13 +381,17 @@ async function handleAIRequest(req, res, isChat = false) {
     const { message, messages, userId, productId, brandId, model = "gpt-4o-mini", temperature = 0.3 } = req.body || {};
 
     let baseMessages;
+    let userMessageContent = "";
+    
     if (isChat) {
       baseMessages = Array.isArray(messages) && messages.length ? messages : null;
       if (!baseMessages) return res.status(400).json({ success: false, message: "Provide 'messages' array." });
+      userMessageContent = messages[messages.length - 1]?.content || "";
     } else {
       baseMessages = typeof message === "string" && message.trim() ? 
         [{ role: "user", content: message.trim() }] : null;
       if (!baseMessages) return res.status(400).json({ success: false, message: "Provide 'message'." });
+      userMessageContent = message.trim();
     }
 
     const { context, catalog } = await buildContext({ userId, productId, brandId });
@@ -313,8 +399,6 @@ async function handleAIRequest(req, res, isChat = false) {
 
     const systemMessage = { role: "system", content: systemPrompt };
     const finalMessages = [systemMessage, ...baseMessages];
-
-    console.log("Sending to AI:", finalMessages);
 
     const response = await client.chat.completions.create({
       model: model,
@@ -325,33 +409,31 @@ async function handleAIRequest(req, res, isChat = false) {
     });
 
     const rawReply = response.choices?.[0]?.message?.content || "{}";
-    console.log("Raw AI response:", rawReply);
     
     let parsed;
     try {
       parsed = JSON.parse(rawReply);
       
-      // Validate the response structure
+      // CRITICAL: Validate response to block external recommendations
+      parsed = validateAIResponse(parsed, catalog, userMessageContent);
+      
       if (!parsed.message || !parsed.responseType) {
         throw new Error("Invalid response format from AI");
       }
       
     } catch (error) {
-      console.error("JSON parse error:", error, "Raw response:", rawReply);
-      
-      // Use fallback response based on user message
-      const userMessage = isChat ? messages[messages.length - 1]?.content : message;
-      parsed = getFallbackResponse(userMessage || "");
+      console.error("JSON parse error:", error);
+      parsed = getFallbackResponse(userMessageContent, catalog);
     }
 
-    // Validate and filter suggested products
+    // Final validation of suggested products
     if (parsed.suggestedProducts?.length) {
       const catalogMap = new Map(catalog.map(p => [p.id, p]));
       parsed.suggestedProducts = parsed.suggestedProducts
         .filter(p => p.id && catalogMap.has(p.id))
         .map(p => ({
           ...catalogMap.get(p.id),
-          reason: p.reason || "Recommended for you"
+          reason: p.reason || "Recommended from our store"
         }))
         .slice(0, 4);
     } else {
@@ -366,9 +448,8 @@ async function handleAIRequest(req, res, isChat = false) {
   } catch (error) {
     console.error("AI request error:", error);
     
-    // Fallback response for any error
     const userMessage = req.body?.message || "";
-    const fallback = getFallbackResponse(userMessage);
+    const fallback = getFallbackResponse(userMessage, []);
     
     return res.status(200).json({ 
       success: true,
@@ -377,12 +458,11 @@ async function handleAIRequest(req, res, isChat = false) {
   }
 }
 
-// Ask endpoint (single-message)
+// ==================== EXPORTED FUNCTIONS ====================
 async function ask(req, res) {
   return handleAIRequest(req, res, false);
 }
 
-// Chat endpoint (multi-turn)
 async function chat(req, res) {
   return handleAIRequest(req, res, true);
 }
