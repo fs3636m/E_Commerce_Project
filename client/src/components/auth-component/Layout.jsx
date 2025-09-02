@@ -253,18 +253,20 @@ const HomeLayout = () => {
       <h4 className="font-semibold text-white mb-2">Quick Links</h4>
       <ul className="space-y-1 text-sm">
         <li><Link to="/brands">Brands</Link></li>
-        <li><Link to="/shop/home">Home</Link></li>
-        <li><Link to="/search">Search</Link></li>
-        <li><Link to="/auth/login">Login</Link></li>
       </ul>
     </div>
     <div>
       <h4 className="font-semibold text-white mb-2">Support</h4>
       <ul className="space-y-1 text-sm">
-        <li><Link to="/contact">Contact Us</Link></li>
-        <li><Link to="/faq">FAQs</Link></li>
-        <li><Link to="/terms">Terms of Service</Link></li>
-        <li><Link to="/privacy">Privacy Policy</Link></li>
+        <li>
+  <button
+    onClick={() => alert("You can reach us at: fs3636m@gre.ac.uk")}
+    className="hover:underline"
+  >
+    Contact Us
+  </button>
+</li>
+
       </ul>
     </div>
     <div>
