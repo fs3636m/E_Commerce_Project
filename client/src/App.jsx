@@ -11,39 +11,57 @@ const AdminLayout = lazy(() => import("./components/admin-view/Layout"));
 const ShoppingLayout = lazy(() => import("./components/shopping-view/Layout"));
 const BrandLayout = lazy(() => import("./components/brand-view/BrandLayout"));
 
-
 // Auth Pages
 const AuthLogin = lazy(() => import("./pages/auth-page/Login"));
 const AuthRegister = lazy(() => import("./pages/auth-page/Register"));
-
+const ForgotPassword = lazy(() => import("@/pages/auth-page/ForgotPassword"));
+const ResetPassword = lazy(() => import("@/pages/auth-page/ResetPassword"));
 // Admin Pages
 const AdminDashboard = lazy(() => import("./pages/admin-view/Dashboard"));
 const AdminProducts = lazy(() => import("./pages/admin-view/Product"));
 const AdminOrders = lazy(() => import("./pages/admin-view/Orders"));
 const AdminFeatures = lazy(() => import("./pages/admin-view/Features"));
 const AdminBrands = lazy(() => import("./components/admin-view/AdminBrands"));
-const AdminBrandSalesReport = lazy(() => import("./components/admin-view/AdminBrandSalesReport"));
+const AdminBrandSalesReport = lazy(() =>
+  import("./components/admin-view/AdminBrandSalesReport")
+);
 // Shopping Pages
 const ShoppingHome = lazy(() => import("./pages/shopping-view/Home"));
 const ShoppingListing = lazy(() => import("./pages/shopping-view/Listing"));
 const ShoppingCheckout = lazy(() => import("./pages/shopping-view/Checkout"));
 const ShoppingAccount = lazy(() => import("./pages/shopping-view/Account"));
-const PaypalReturnPage = lazy(() => import("./pages/shopping-view/paypal_return"));
-const PaymentSuccessPage = lazy(() => import("./pages/shopping-view/payment_success"));
+const PaypalReturnPage = lazy(() =>
+  import("./pages/shopping-view/paypal_return")
+);
+const PaymentSuccessPage = lazy(() =>
+  import("./pages/shopping-view/payment_success")
+);
 const SearchProducts = lazy(() => import("./pages/shopping-view/search"));
-const ProductDetailsPage = lazy(() => import("./components/shopping-view/product-details"));
+const ProductDetailsPage = lazy(() =>
+  import("./components/shopping-view/product-details")
+);
 
 // Brand (Logged-in) Pages
 const BrandDashboard = lazy(() => import("./pages/brand-view/BrandDashboard"));
 const BrandProducts = lazy(() => import("./pages/brand-view/BrandProducts"));
 const BrandForm = lazy(() => import("./pages/brand-view/BrandForm"));
-const BrandProfilePage = lazy(() => import("./pages/brand-view/BrandProfilePage"));
-const BrandOrdersView = lazy(() => import("./pages/brand-view/BrandOrdersView"));
-const BrandSalesReport = lazy(() => import("./components/brand-view/BrandSalesReport"));
+const BrandProfilePage = lazy(() =>
+  import("./pages/brand-view/BrandProfilePage")
+);
+const BrandOrdersView = lazy(() =>
+  import("./pages/brand-view/BrandOrdersView")
+);
+const BrandSalesReport = lazy(() =>
+  import("./components/brand-view/BrandSalesReport")
+);
 
 // Public Brand Pages
-const BrandListingPage = lazy(() => import("./pages/shopping-view/BrandListingPage"));
-const BrandPublicProfile = lazy(() => import("./pages/brand-view/BrandPublicProfile"));
+const BrandListingPage = lazy(() =>
+  import("./pages/shopping-view/BrandListingPage")
+);
+const BrandPublicProfile = lazy(() =>
+  import("./pages/brand-view/BrandPublicProfile")
+);
 
 const BrandSuccess = lazy(() => import("./pages/brand-view/BrandSuccess"));
 const NotFound = lazy(() => import("./pages/not-found/Index"));
@@ -51,7 +69,9 @@ const UnauthPage = lazy(() => import("./pages/unauth-page/Index"));
 
 function App() {
   const dispatch = useDispatch();
-  const { user, isAuthenticated, isLoading } = useSelector((state) => state.auth);
+  const { user, isAuthenticated, isLoading } = useSelector(
+    (state) => state.auth
+  );
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -85,14 +105,14 @@ function App() {
           {/* ✅ Public Routes */}
           <Route path="/brands" element={<BrandListingPage />} />
           <Route path="/brands/:brandId" element={<BrandPublicProfile />} />
-         
-
-          
 
           {/* 🔐 Auth Routes */}
           <Route path="/auth" element={<AuthLayout />}>
             <Route path="login" element={<AuthLogin />} />
             <Route path="register" element={<AuthRegister />} />
+
+            <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="reset-password/:token" element={<ResetPassword />} />
           </Route>
 
           {/* 🔐 Admin Routes */}
@@ -128,9 +148,10 @@ function App() {
             <Route path="paypal-return" element={<PaypalReturnPage />} />
             <Route path="payment-success" element={<PaymentSuccessPage />} />
             <Route path="search" element={<SearchProducts />} />
-            <Route path="products/:productId" element={<ProductDetailsPage />} />
-
-
+            <Route
+              path="products/:productId"
+              element={<ProductDetailsPage />}
+            />
           </Route>
 
           {/* 🔐 Brand Routes */}
@@ -153,7 +174,7 @@ function App() {
             <Route path="create" element={<BrandForm />} />
             <Route path="orders" element={<BrandOrdersView />} />
             <Route path="products/:productId/edit" element={<BrandForm />} />
-            <Route path="edit-profile" element={<BrandProfilePage />} /> 
+            <Route path="edit-profile" element={<BrandProfilePage />} />
             <Route path="upload-product" element={<BrandForm />} />
             <Route path="sales-report" element={<BrandSalesReport />} />
             <Route path="success" element={<BrandSuccess />} />

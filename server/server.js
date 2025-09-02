@@ -49,6 +49,7 @@ app.use("/api", require("./routes/ai/ai_routes"));
 const authRouter = require("./routes/auth/auth_route");
 app.use("/api/auth", authRouter);
 
+
 // 🛒 Shop Routes
 app.use("/api/shop/products", require("./routes/shop/products_routes"));
 app.use("/api/shop/cart", require("./routes/shop/cart_routes"));

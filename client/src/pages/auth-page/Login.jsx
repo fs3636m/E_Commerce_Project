@@ -62,6 +62,16 @@ const AuthLogin = () => {
         onSubmit={handleSubmit}
         disabled={isLoading}
       />
+       {/* Forgot Password Link */}
+      <p className="text-sm text-center text-gray-600 mt-2">
+        Forgot your password?{" "}
+        <Link
+          to="/auth/forgot-password"
+          className="text-blue-500 hover:underline"
+        >
+          Reset it here
+        </Link>
+      </p>
     </div>
   );
 };

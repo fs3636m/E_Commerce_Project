@@ -20,6 +20,7 @@ import brandSummaryReducer from "./brand/summary_slice";
 import brandReducer from "./shop/brand_slice";
 import homepageFeatureReducer from "./shop/feature_slice";
 import brandReportsReducer from "./brand/brandSales_slice";
+import passwordReducer from "./auth/password_Slice";
 
 
 
@@ -46,7 +47,8 @@ const store = configureStore({
     brand: brandReducer,
     brandSummary: brandSummaryReducer,
     homepageFeature: homepageFeatureReducer,
-    brandReports: brandReportsReducer
+    brandReports: brandReportsReducer,
+    password: passwordReducer
     
   },
   middleware: (getDefaultMiddleware) =>

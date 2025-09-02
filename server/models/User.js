@@ -16,11 +16,14 @@ const UserSchema = new mongoose.Schema({
         required: true,
         
     },
+    
     role: {
   type: String,
   enum: ["user", "admin", "brand"], 
   default: "user",
-}
+},
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 });
 
 module.exports = mongoose.model("User", UserSchema);
