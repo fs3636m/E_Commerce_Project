@@ -1,5 +1,5 @@
-// src/pages/auth/ResetPassword.jsx
 import { useState } from "react";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai"; // icons
 import { useDispatch, useSelector } from "react-redux";
 import { resetPassword } from "@/store/auth/password_Slice";
 import { useParams, useNavigate, Link } from "react-router-dom";
@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 export default function ResetPassword() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { token } = useParams(); // token from URL
+  const { token } = useParams();
   const { isLoading } = useSelector((state) => state.password);
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,20 +36,41 @@ export default function ResetPassword() {
     <div className="max-w-sm mx-auto mt-20 p-6 border rounded-xl shadow-md bg-white">
       <h2 className="text-2xl font-bold text-center mb-4">Reset Password</h2>
       <form onSubmit={handleSubmit} className="space-y-3">
-        <input
-          type="password"
-          placeholder="New password"
-          className="w-full border border-gray-300 px-3 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Confirm password"
-          className="w-full border border-gray-300 px-3 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
+        
+        {/* Password */}
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="New password"
+            className="w-full border border-gray-300 px-3 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <span
+            className="absolute right-3 top-2.5 cursor-pointer text-gray-500"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
+          </span>
+        </div>
+
+        {/* Confirm Password */}
+        <div className="relative">
+          <input
+            type={showConfirm ? "text" : "password"}
+            placeholder="Confirm password"
+            className="w-full border border-gray-300 px-3 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+          <span
+            className="absolute right-3 top-2.5 cursor-pointer text-gray-500"
+            onClick={() => setShowConfirm(!showConfirm)}
+          >
+            {showConfirm ? <AiFillEyeInvisible /> : <AiFillEye />}
+          </span>
+        </div>
+
         <Button
           type="submit"
           disabled={isLoading}
